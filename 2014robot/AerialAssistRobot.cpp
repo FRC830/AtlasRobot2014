@@ -6,8 +6,8 @@ class AerialAssistRobot : public IterativeRobot
 {
 	static const int ROLLER_PWM = 3;
 	static const int ARM_LIFT_PWM = 4;
-	static const int LEFT_DRIVE_PWM = 1;
-	static const int RIGHT_DRIVE_PWM = 2;
+	static const int LEFT_DRIVE_PWM = 10;
+	static const int RIGHT_DRIVE_PWM = 1;
 	static const int WINCH_PWM = 5;
 	
 	static const int PRESSURE_SWITCH_DIO = 1;
@@ -22,7 +22,7 @@ class AerialAssistRobot : public IterativeRobot
 	
     static const float MAX_ACCEL_TIME = 0.5f;        //how many seconds we want it to take to get to max speed
     float max_delta_speed;
-    //max_delta_speed = 1 / (time-to-get-to-maximum-speed * cycles-in-one-second)
+    //max_delta_speed = 1.0 / (MAX_ACCEL_TIME * GetLoopsPerSec)
 	
     float old_turn, old_forward;
     
@@ -47,9 +47,9 @@ class AerialAssistRobot : public IterativeRobot
     
 	float clamp(float input, float min){
 		if (abs_float(input) < min){
-			return input;
-		} else {
 			return 0.0f;
+		} else {
+			return input;
 		}
 	}
 	
@@ -57,8 +57,8 @@ class AerialAssistRobot : public IterativeRobot
 public:
 	AerialAssistRobot(void)	{
 		drive = new RobotDrive(new Victor(LEFT_DRIVE_PWM), new Victor (RIGHT_DRIVE_PWM));
-		//drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, false);
-		//drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, false);
+		drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, true);
+		drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, true);
 		//drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
 		//drive->SetInvertedMotor(RobotDrive::kRearRightMotor, false);
 		
@@ -106,35 +106,30 @@ public:
 	void TeleopPeriodic(void) {
 		//standard arcade drive using left and right sticks
 		//clamp the values so small inputs are ignored
-		float forward = -pilot->GetLeftY();
-		forward = clamp(forward, 0.05f);
+		float speed = -pilot->GetLeftY();
+		speed = clamp(speed, 0.05f);
 		float turn = pilot->GetRightX();
 		turn = clamp(turn, 0.05f);
 		
-		max_delta_speed = 1.0f / (MAX_ACCEL_TIME * GetLoopsPerSec());
+        lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", speed, turn);
+        
+		max_delta_speed = 1.0f / (MAX_ACCEL_TIME * GetLoopsPerSec()); //1.0 represents the maximum victor input
         //float delta_turn = turn - old_turn;
-        float delta_forward = forward - old_forward;
-        /*
-        if (delta_turn > max_delta_speed && delta_turn > 0.0f){
-        	turn = old_turn + max_delta_speed;
-        } else if (delta_turn < -max_delta_speed && delta_turn < 0.0f){
-			turn = old_turn - max_delta_speed;
-        } 
-        */
-         //if neither of these is the case, |delta_turn| is less than the max 
-         //and we can just use the turn without modification.
+        float delta_speed = speed - old_forward;
+        
+        if (delta_speed > max_delta_speed){
+			speed = old_forward + max_delta_speed;
+        } else if (delta_speed < -max_delta_speed){
+			speed = old_forward - max_delta_speed;
+        }
+         //if neither of these is the case, |delta_speed| is less than the max 
+         //and we can just use the given value without modification.
          
-         if (delta_forward > max_delta_speed && delta_forward > 0.0f){
-			forward = old_forward + max_delta_speed;
-         } else if (delta_forward < -max_delta_speed && delta_forward < 0.0f){
-			forward = old_forward - max_delta_speed;
-         }
+         lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", speed, turn);
          
-         lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", forward, turn);
-         
-         drive->ArcadeDrive(turn, forward);
+         drive->ArcadeDrive(-turn, speed); //turn needs to be reversed
          old_turn = turn;
-         old_forward = forward;
+         old_forward = speed;
 		
 		
 		//move the arm up or down
