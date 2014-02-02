@@ -111,13 +111,16 @@ public:
 		float turn = pilot->GetRightX();
 		turn = clamp(turn, 0.05f);
 		
-        float delta_turn = turn - old_turn;
+		max_delta_speed = 1.0f / (MAX_ACCEL_TIME * GetLoopsPerSec());
+        //float delta_turn = turn - old_turn;
         float delta_forward = forward - old_forward;
+        /*
         if (delta_turn > max_delta_speed && delta_turn > 0.0f){
         	turn = old_turn + max_delta_speed;
         } else if (delta_turn < -max_delta_speed && delta_turn < 0.0f){
 			turn = old_turn - max_delta_speed;
         } 
+        */
          //if neither of these is the case, |delta_turn| is less than the max 
          //and we can just use the turn without modification.
          
@@ -127,7 +130,7 @@ public:
 			forward = old_forward - max_delta_speed;
          }
          
-         lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", turn, forward);
+         lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", forward, turn);
          
          drive->ArcadeDrive(turn, forward);
          old_turn = turn;
