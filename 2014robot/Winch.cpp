@@ -7,9 +7,9 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder) {
 	clutch_position = CLUTCH_OUT;
 }
 
-Winch::wind_back(){
+void Winch::wind_back(){
 	if (clutch_position == CLUTCH_OUT){
-		clutch.Set(CLUTCH_IN);
+		clutch->Set(CLUTCH_IN);
 		clutch_position = CLUTCH_IN;
 		winch_encoder->Reset();
 		winch_encoder->Start();
@@ -19,8 +19,8 @@ Winch::wind_back(){
 	}
 }
 
-Winch::fire(){
+void Winch::fire(){
 	winch_encoder->Stop();
-	clutch.Set(CLUTCH_OUT);
+	clutch->Set(CLUTCH_OUT);
 	clutch_position = CLUTCH_OUT;
 }

@@ -127,7 +127,7 @@ public:
          
          lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", speed, turn);
          
-         drive->ArcadeDrive(-turn, speed); //turn needs to be reversed
+         drive->ArcadeDrive(-turn, speed / 1.5); //turn needs to be reversed
          old_turn = turn;
          old_forward = speed;
 		
