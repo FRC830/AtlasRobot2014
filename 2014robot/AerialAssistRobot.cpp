@@ -1,5 +1,6 @@
 #include "WPILib.h"
 #include "Gamepad.h"
+#include "Winch.h"
 #include <cmath>
 
 class AerialAssistRobot : public IterativeRobot
@@ -12,6 +13,11 @@ class AerialAssistRobot : public IterativeRobot
 	
 	static const int PRESSURE_SWITCH_DIO = 1;
 	static const int COMPRESSOR_RELAY_DIO = 2;
+	
+	static const int ARM_ENCODER_A_CHANNEL = 1;
+	static const int ARM_ENCODER_B_CHANNEL = 2;
+	static const int WINCH_ENCODER_A_CHANNEL = 3;
+	static const int WINCH_ENCODER_B_CHANNEL = 4;
 	
 	static const int GEAR_SHIFT_SOL = 1;
 	static const int CLUTCH_SOL = 2;
@@ -30,7 +36,11 @@ class AerialAssistRobot : public IterativeRobot
 	
 	Victor * roller;
 	Victor * arm_lift;
-	Victor * winch;
+	Encoder * arm_encoder;
+	
+	Victor * winch_motor;
+	Encoder * winch_encoder;
+	Winch * winch;
 	
 	Solenoid * gear_shift;
 	Solenoid * clutch;
@@ -64,10 +74,15 @@ public:
 		
 		roller = new Victor(ROLLER_PWM);
 		arm_lift = new Victor(ARM_LIFT_PWM);
-		winch = new Victor(WINCH_PWM);
+		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL);
+		
+		winch_motor = new Victor(WINCH_PWM);
+		winch_encoder = new Encoder(WINCH_ENCODER_A_CHANNEL, WINCH_ENCODER_B_CHANNEL);
 		
 		gear_shift = new Solenoid(GEAR_SHIFT_SOL);
 		clutch = new Solenoid(CLUTCH_SOL);
+		
+		winch = new Winch(winch_motor, clutch, winch_encoder);
 		
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY_DIO);
 		
@@ -148,15 +163,11 @@ public:
 		
 		//prime shooter to fire
 		if (copilot->GetNumberedButton(3)){
-			winch->Set(1.0f); //TODO: determine proper direction, power 
-		} else {
-			winch->Set(0.0f);
+			winch->wind_back();
 		}
 		
 		if (copilot->GetNumberedButton(5)){
-			clutch->Set(CLUTCH_OUT);	//fire the shooter 
-		} else if (copilot->GetNumberedButton(7)){
-			clutch->Set(CLUTCH_IN);
+			winch->fire();
 		}
 		
 		if (pilot->GetNumberedButton(5) || pilot->GetNumberedButton(6)){
