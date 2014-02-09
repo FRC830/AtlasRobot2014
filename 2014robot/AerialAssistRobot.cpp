@@ -39,6 +39,12 @@ class AerialAssistRobot : public IterativeRobot
     float max_delta_speed;
     //max_delta_speed = 1.0 / (MAX_ACCEL_TIME * GetLoopsPerSec)
 	
+    static const int RANGE_FINDER_PING_CHANNEL_L_DIO = 9;
+    static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 10;
+    static const int RANGE_FINDER_PING_CHANNEL_R_DIO = 9;
+    static const int RANGE_FINDER_ECHO_CHANNEL_R_DIO = 10;
+    
+    
     float old_turn, old_forward;
     
 	RobotDrive * drive;
@@ -63,6 +69,9 @@ class AerialAssistRobot : public IterativeRobot
 	Solenoid * gear_shift;
 	Solenoid * clutch;
 	Compressor * compressor;
+	
+	Ultrasonic * range_finder_l;
+	Ultrasonic * range_finder_r;
 	
 	Gamepad * pilot;
 	Gamepad * copilot;
@@ -120,6 +129,10 @@ public:
 		
 		winch = new Winch(winch_motor, clutch, winch_encoder, winch_zero_switch, winch_max_switch);
 		
+		range_finder_l = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_L_DIO), 
+				new DigitalInput(RANGE_FINDER_ECHO_CHANNEL_L_DIO));
+		range_finder_r = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_R_DIO),
+				new DigitalInput(RANGE_FINDER_ECHO_CHANNEL_R_DIO));
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY_DIO);
 		
 		lcd = DriverStationLCD::GetInstance();
@@ -184,10 +197,11 @@ public:
  			gear_shift->Set(LOW_GEAR);
  		}
 
+ 		Gamepad::DPadDirection dpad = copilot->GetDPad();
 		//spin the roller forward or back
-		if (copilot->GetNumberedButton(5)) {
+		if (dpad == Gamepad::kUp) {
 			arm->set_roller(0.4f);
-		} else if (copilot->GetNumberedButton(6)){
+		} else if (dpad == Gamepad::kDown){
 			arm->set_roller(-0.4f);
 		} else {
 			arm->set_roller(0.0f);
