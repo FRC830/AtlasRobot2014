@@ -223,7 +223,7 @@ public:
 		
 		//prime shooter to fire
 		if (copilot->GetRightY() > 0.3f){
-			winch->wind_back();
+			//winch->wind_back();
 		}
 		
 		if (copilot->GetNumberedButton(5)){
@@ -233,6 +233,13 @@ public:
 		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", range_finder_l->GetRangeInches());
 		
 		arm->update();
+		
+		//Compressor on button 10
+		if (pilot->GetNumberedButton(10)){
+			compressor->Start();
+		} else {
+			compressor->Stop();
+		}
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->UpdateLCD();
