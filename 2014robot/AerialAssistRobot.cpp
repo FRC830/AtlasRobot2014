@@ -5,6 +5,7 @@
 
 class AerialAssistRobot : public IterativeRobot
 {
+	
 	static const int ROLLER_PWM = 3;
 	static const int ARM_LIFT_PWM = 4;
 	static const int LEFT_DRIVE_PWM = 10;
@@ -13,9 +14,11 @@ class AerialAssistRobot : public IterativeRobot
 	
 	static const int PRESSURE_SWITCH_DIO = 1;
 	static const int COMPRESSOR_RELAY_DIO = 2;
+	static const int WINCH_MAX_LIMIT_DIO = 3;
+	static const int WINCH_ZERO_POINT_DIO = 4;
 	
-	static const int ARM_ENCODER_A_CHANNEL = 1;
-	static const int ARM_ENCODER_B_CHANNEL = 2;
+	static const int ARM_ENCODER_A_CHANNEL = 5;
+	static const int ARM_ENCODER_B_CHANNEL = 6;
 	static const int WINCH_ENCODER_A_CHANNEL = 3;
 	static const int WINCH_ENCODER_B_CHANNEL = 4;
 	
@@ -23,7 +26,7 @@ class AerialAssistRobot : public IterativeRobot
 	static const int CLUTCH_SOL = 2;
 	static const bool HIGH_GEAR = true; //TODO: determine which of these is which
 	static const bool LOW_GEAR = false;
-	static const bool CLUTCH_IN = true; //TODO: ditto
+	static const bool CLUTCH_IN = true;
 	static const bool CLUTCH_OUT = false;
 	
     static const float MAX_ACCEL_TIME = 0.5f;        //how many seconds we want it to take to get to max speed
@@ -41,6 +44,8 @@ class AerialAssistRobot : public IterativeRobot
 	Victor * winch_motor;
 	Encoder * winch_encoder;
 	Winch * winch;
+	DigitalInput * winch_max_switch;
+	DigitalInput * winch_zero_switch;
 	
 	Solenoid * gear_shift;
 	Solenoid * clutch;
@@ -50,6 +55,9 @@ class AerialAssistRobot : public IterativeRobot
 	Gamepad * copilot;
 	
 	DriverStationLCD * lcd;
+	
+	
+
 	
     float abs_float(float input){
             return (input < 0.0f) ? -input : input;
@@ -66,11 +74,18 @@ class AerialAssistRobot : public IterativeRobot
 	
 public:
 	AerialAssistRobot(void)	{
+
+	}
+	
+	
+	/********************************** Init Routines *************************************/
+
+	void RobotInit(void) {
 		drive = new RobotDrive(new Victor(LEFT_DRIVE_PWM), new Victor (RIGHT_DRIVE_PWM));
 		drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, true);
 		drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, true);
-		//drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
-		//drive->SetInvertedMotor(RobotDrive::kRearRightMotor, false);
+		drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
+		drive->SetInvertedMotor(RobotDrive::kRearRightMotor, false);
 		
 		roller = new Victor(ROLLER_PWM);
 		arm_lift = new Victor(ARM_LIFT_PWM);
@@ -78,11 +93,13 @@ public:
 		
 		winch_motor = new Victor(WINCH_PWM);
 		winch_encoder = new Encoder(WINCH_ENCODER_A_CHANNEL, WINCH_ENCODER_B_CHANNEL);
+		winch_max_switch = new DigitalInput (WINCH_MAX_LIMIT_DIO);
+		winch_zero_switch = new DigitalInput (WINCH_ZERO_POINT_DIO);
 		
 		gear_shift = new Solenoid(GEAR_SHIFT_SOL);
 		clutch = new Solenoid(CLUTCH_SOL);
 		
-		winch = new Winch(winch_motor, clutch, winch_encoder);
+		winch = new Winch(winch_motor, clutch, winch_encoder, winch_zero_switch, winch_max_switch);
 		
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY_DIO);
 		
@@ -90,12 +107,6 @@ public:
 		
 		pilot = new Gamepad(1);
 		copilot = new Gamepad(2);
-	}
-	
-	
-	/********************************** Init Routines *************************************/
-
-	void RobotInit(void) {
 	}
 	
 	void DisabledInit(void) {
@@ -119,6 +130,8 @@ public:
 
 	
 	void TeleopPeriodic(void) {
+		
+		
 		//standard arcade drive using left and right sticks
 		//clamp the values so small inputs are ignored
 		float speed = -pilot->GetLeftY();
@@ -163,11 +176,11 @@ public:
 		
 		//prime shooter to fire
 		if (copilot->GetNumberedButton(3)){
-			winch->wind_back();
+			//winch->wind_back();
 		}
 		
 		if (copilot->GetNumberedButton(5)){
-			winch->fire();
+			//winch->fire();
 		}
 		
 		if (pilot->GetNumberedButton(5) || pilot->GetNumberedButton(6)){
@@ -178,9 +191,11 @@ public:
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->UpdateLCD();
+		
+		
 	}
 
-			
+
 };
 
 START_ROBOT_CLASS(AerialAssistRobot);
