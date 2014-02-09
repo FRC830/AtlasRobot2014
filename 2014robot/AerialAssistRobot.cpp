@@ -230,6 +230,8 @@ public:
 			winch->fire();
 		}
 		
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", range_finder_l->GetRangeInches());
+		
 		arm->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
