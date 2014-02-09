@@ -9,12 +9,16 @@ private:
 	Solenoid * clutch;
 	bool clutch_position;
 	Encoder * winch_encoder;
+	DigitalInput * zero_pt_lim_switch;
+	DigitalInput * max_lim_switch;
 	static const bool CLUTCH_IN = true; //TODO: determine this
 	static const bool CLUTCH_OUT = false;
-	static const int MAX_ROTATIONS = 10; //todo: determine this
+	float target_rotations;
 	
 public:
-	Winch(Victor * motor, Solenoid * sol, Encoder * encoder);
+	Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * start_pos, DigitalInput * max_pos);
+	void set_target_rotations(float n);
+	float get_target_rotations();
 	void wind_back();
 	void fire();
 	

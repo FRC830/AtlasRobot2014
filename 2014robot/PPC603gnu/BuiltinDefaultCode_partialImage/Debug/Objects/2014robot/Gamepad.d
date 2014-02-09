@@ -1,6 +1,5 @@
 BuiltinDefaultCode_partialImage/Debug/Objects/2014robot/Gamepad.o:  \
- C:///FRC830-2014/2014robot/Gamepad.cpp \
-  C:///FRC830-2014/2014robot/Gamepad.h \
+ C:/FRC830-2014/2014robot/Gamepad.cpp C:/FRC830-2014/2014robot/Gamepad.h \
   C:/WindRiver/vxworks-6.3/target/h/WPILib/Joystick.h \
   C:/WindRiver/vxworks-6.3/target/h/WPILib/GenericHID.h \
   C:/WindRiver/vxworks-6.3/target/h/vxWorks.h \
@@ -150,7 +149,7 @@ BuiltinDefaultCode_partialImage/Debug/Objects/2014robot/Gamepad.o:  \
   C:/WindRiver/vxworks-6.3/target/h/copyright_wrs.h \
   C:/WindRiver/vxworks-6.3/target/h/sys/taskDefs.h
 
-C:///FRC830-2014/2014robot/Gamepad.h:
+C:/FRC830-2014/2014robot/Gamepad.h:
 
 C:/WindRiver/vxworks-6.3/target/h/WPILib/Joystick.h:
 
