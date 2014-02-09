@@ -223,7 +223,7 @@ public:
 		
 		//prime shooter to fire
 		if (copilot->GetRightY() > 0.3f){
-			winch->wind_back();
+			//winch->wind_back();
 		}
 		
 		if (copilot->GetNumberedButton(5)){
