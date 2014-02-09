@@ -31,8 +31,8 @@ else
 MODE_DIR := NonDebug
 endif
 OBJ_DIR := .
-WS_ROOT_DIR := C:/zoidberg
-PRJ_ROOT_DIR := C:/FRC830-2014/2014robot
+WS_ROOT_DIR := C:/
+PRJ_ROOT_DIR := $(WS_ROOT_DIR)//FRC830-2014/2014robot
 
 
 
@@ -166,10 +166,6 @@ BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/AerialAssistRobot.
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
-BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Camera.o : $(PRJ_ROOT_DIR)/Camera.cpp $(FORCE_FILE_BUILD)
-	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
-
-
 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Gamepad.o : $(PRJ_ROOT_DIR)/Gamepad.cpp $(FORCE_FILE_BUILD)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
@@ -179,7 +175,6 @@ BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Winch.o : $(PRJ_RO
 
 
 OBJECTS_BuiltinDefaultCode_partialImage = BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/AerialAssistRobot.o \
-	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Camera.o \
 	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Gamepad.o \
 	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Winch.o
 
@@ -195,8 +190,7 @@ BuiltinDefaultCode_partialImage/$(MODE_DIR)/BuiltinDefaultCode_partialImage_clea
 
 force : 
 
-DEP_FILES := BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/AerialAssistRobot.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Camera.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Gamepad.d \
-	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Winch.d
+DEP_FILES := BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/AerialAssistRobot.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Gamepad.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Winch.d
 -include $(DEP_FILES)
 
 

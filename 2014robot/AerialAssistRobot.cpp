@@ -176,6 +176,13 @@ public:
 			gear_shift->Set(LOW_GEAR);
 		}
 		
+		//Compressor on button 10
+		if (pilot->GetNumberedButton(10)){
+			compressor->Start();
+		} else {
+			compressor->Stop();
+		}
+		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->UpdateLCD();
 	}
