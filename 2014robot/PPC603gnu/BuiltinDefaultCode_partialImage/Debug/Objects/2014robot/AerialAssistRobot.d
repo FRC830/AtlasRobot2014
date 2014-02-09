@@ -386,7 +386,11 @@
   C:/WindRiver/vxworks-6.3/target/h/WPILib/WPIErrors.h \
   C:///FRC830-2014/2014robot/Gamepad.h \
   C:/WindRiver/vxworks-6.3/target/h/WPILib/Joystick.h \
+<<<<<<< HEAD
   C:///FRC830-2014/2014robot/Winch.h \
+=======
+  C:/FRC830-2014/2014robot/Winch.h C:/FRC830-2014/2014robot/Arm.h \
+>>>>>>> 402d083ea13d941aacc5ce007d765d4fc8fe0b95
   c:/windriver/gnu/3.4.4-vxworks-6.3/x86-win32/lib/gcc/../../../x86-win32/include/c++/3.4.4/cmath \
   C:/WindRiver/vxworks-6.3/target/h/math.h
 
@@ -1161,6 +1165,8 @@ C:///FRC830-2014/2014robot/Gamepad.h:
 C:/WindRiver/vxworks-6.3/target/h/WPILib/Joystick.h:
 
 C:///FRC830-2014/2014robot/Winch.h:
+
+C:/FRC830-2014/2014robot/Arm.h:
 
 c:/windriver/gnu/3.4.4-vxworks-6.3/x86-win32/lib/gcc/../../../x86-win32/include/c++/3.4.4/cmath:
 

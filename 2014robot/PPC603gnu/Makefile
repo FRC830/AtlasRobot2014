@@ -166,7 +166,22 @@ BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/AerialAssistRobot.
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
+<<<<<<< HEAD
+=======
+BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Arm.o : $(PRJ_ROOT_DIR)/Arm.cpp $(FORCE_FILE_BUILD)
+	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
+
+
+BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Camera.o : $(PRJ_ROOT_DIR)/Camera.cpp $(FORCE_FILE_BUILD)
+	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
+
+
+>>>>>>> 402d083ea13d941aacc5ce007d765d4fc8fe0b95
 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Gamepad.o : $(PRJ_ROOT_DIR)/Gamepad.cpp $(FORCE_FILE_BUILD)
+	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
+
+
+BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Rangefinder.o : $(PRJ_ROOT_DIR)/Rangefinder.cpp $(FORCE_FILE_BUILD)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
@@ -175,7 +190,13 @@ BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Winch.o : $(PRJ_RO
 
 
 OBJECTS_BuiltinDefaultCode_partialImage = BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/AerialAssistRobot.o \
+<<<<<<< HEAD
+=======
+	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Arm.o \
+	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Camera.o \
+>>>>>>> 402d083ea13d941aacc5ce007d765d4fc8fe0b95
 	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Gamepad.o \
+	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Rangefinder.o \
 	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Winch.o
 
 BuiltinDefaultCode_partialImage/$(MODE_DIR)/BuiltinDefaultCode_partialImage.o : $(OBJECTS_BuiltinDefaultCode_partialImage)
@@ -190,7 +211,12 @@ BuiltinDefaultCode_partialImage/$(MODE_DIR)/BuiltinDefaultCode_partialImage_clea
 
 force : 
 
+<<<<<<< HEAD
 DEP_FILES := BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/AerialAssistRobot.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Gamepad.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Winch.d
+=======
+DEP_FILES := BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/AerialAssistRobot.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Arm.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Camera.d \
+	 BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Gamepad.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Rangefinder.d BuiltinDefaultCode_partialImage/$(MODE_DIR)/Objects/2014robot/Winch.d
+>>>>>>> 402d083ea13d941aacc5ce007d765d4fc8fe0b95
 -include $(DEP_FILES)
 
 
