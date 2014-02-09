@@ -1,6 +1,7 @@
 #include "WPILib.h"
 #include "Gamepad.h"
 #include "Winch.h"
+#include "Arm.h"
 #include <cmath>
 
 class AerialAssistRobot : public IterativeRobot
@@ -16,6 +17,11 @@ class AerialAssistRobot : public IterativeRobot
 	static const int COMPRESSOR_RELAY_DIO = 2;
 	static const int WINCH_MAX_LIMIT_DIO = 3;
 	static const int WINCH_ZERO_POINT_DIO = 4;
+	
+	static const int ARM_FLOOR_SWITCH_DIO = 5;
+	static const int ARM_LOW_SWITCH_DIO = 6;
+	static const int ARM_TOP_SWITCH_DIO = 7;
+	static const int ARM_BALL_SWITCH_DIO = 8;
 	
 	static const int ARM_ENCODER_A_CHANNEL = 5;
 	static const int ARM_ENCODER_B_CHANNEL = 6;
@@ -37,9 +43,16 @@ class AerialAssistRobot : public IterativeRobot
     
 	RobotDrive * drive;
 	
+	
+	DigitalInput * arm_floor;
+	DigitalInput * arm_low_goal;
+	DigitalInput * arm_top;
+	DigitalInput * arm_ball;
 	Victor * roller;
 	Victor * arm_lift;
 	Encoder * arm_encoder;
+	
+	Arm * arm;
 	
 	Victor * winch_motor;
 	Encoder * winch_encoder;
@@ -90,6 +103,12 @@ public:
 		roller = new Victor(ROLLER_PWM);
 		arm_lift = new Victor(ARM_LIFT_PWM);
 		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL);
+		arm_floor = new DigitalInput(ARM_FLOOR_SWITCH_DIO);
+		arm_low_goal = new DigitalInput(ARM_LOW_SWITCH_DIO);
+		arm_top = new DigitalInput(ARM_TOP_SWITCH_DIO);
+		arm_ball = new DigitalInput(ARM_BALL_SWITCH_DIO);
+		
+		arm = new Arm(roller, arm_lift, arm_floor, arm_low_goal, arm_top, arm_ball);
 		
 		winch_motor = new Victor(WINCH_PWM);
 		winch_encoder = new Encoder(WINCH_ENCODER_A_CHANNEL, WINCH_ENCODER_B_CHANNEL);
@@ -150,44 +169,54 @@ public:
         } else if (delta_speed < -max_delta_speed){
 			speed = old_forward - max_delta_speed;
         }
-         //if neither of these is the case, |delta_speed| is less than the max 
-         //and we can just use the given value without modification.
+        //if neither of these is the case, |delta_speed| is less than the max 
+        //and we can just use the given value without modification.
          
-         lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", speed, turn);
+        lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", speed, turn);
          
-         drive->ArcadeDrive(-turn, speed / 1.5); //turn needs to be reversed
-         old_turn = turn;
-         old_forward = speed;
+        drive->ArcadeDrive(-turn, speed / 1.5); //turn needs to be reversed
+        old_turn = turn;
+        old_forward = speed;
 		
-		
-		//move the arm up or down
-		float arm_move = copilot->GetRightY();
-		arm_move = clamp(arm_move, 0.1f);
-		arm_lift->Set(arm_move);
+ 		if (pilot->GetNumberedButton(5) || pilot->GetNumberedButton(6)){
+ 			gear_shift->Set(HIGH_GEAR);
+ 		} else if (pilot->GetNumberedButton(7) || pilot->GetNumberedButton(8)){
+ 			gear_shift->Set(LOW_GEAR);
+ 		}
 
 		//spin the roller forward or back
 		if (copilot->GetNumberedButton(5)) {
-			roller->Set(0.4f);
+			arm->set_roller(0.4f);
 		} else if (copilot->GetNumberedButton(6)){
-			roller->Set(-0.4f);
+			arm->set_roller(-0.4f);
 		} else {
-			roller->Set(0.0f);
+			arm->set_roller(0.0f);
+		}
+		
+		if (copilot->GetNumberedButton(1)){
+			arm->set_position(Arm::floor);
+		} else if (copilot->GetNumberedButton(2)){
+			arm->set_position(Arm::low_goal);
+		} else if (copilot->GetNumberedButton(4)){
+			arm->set_position(Arm::top);
+		}
+		
+		float arm_move = copilot->GetLeftY();
+		if (abs_float(arm_move) > 0.2f){
+			arm->set_position(Arm::none);
+			arm_lift->Set(arm_move);
 		}
 		
 		//prime shooter to fire
-		if (copilot->GetNumberedButton(3)){
-			//winch->wind_back();
+		if (copilot->GetRightY() > 0.3f){
+			winch->wind_back();
 		}
 		
 		if (copilot->GetNumberedButton(5)){
-			//winch->fire();
+			winch->fire();
 		}
 		
-		if (pilot->GetNumberedButton(5) || pilot->GetNumberedButton(6)){
-			gear_shift->Set(HIGH_GEAR);
-		} else if (pilot->GetNumberedButton(7) || pilot->GetNumberedButton(8)){
-			gear_shift->Set(LOW_GEAR);
-		}
+		arm->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->UpdateLCD();
