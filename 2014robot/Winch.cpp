@@ -1,6 +1,8 @@
 #include "Winch.h"
 #include <cmath>
 
+
+
 Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * start_pos, DigitalInput * max_pos) {
 	winch_motor = motor;
 	clutch = sol;

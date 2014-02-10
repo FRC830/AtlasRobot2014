@@ -1,6 +1,7 @@
 #include "Rangefinder.h"
 #include <cmath>
 
+
 Rangefinder::Rangefinder(Ultrasonic * us_left, Ultrasonic * us_right){
 	left = us_left;
 	right = us_right;
