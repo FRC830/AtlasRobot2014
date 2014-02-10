@@ -2,6 +2,7 @@
 #include "Gamepad.h"
 #include "Winch.h"
 #include "Arm.h"
+#include "Rangefinder.h"
 #include <cmath>
 
 class AerialAssistRobot : public IterativeRobot
@@ -70,8 +71,9 @@ class AerialAssistRobot : public IterativeRobot
 	Solenoid * clutch;
 	Compressor * compressor;
 	
-	Ultrasonic * range_finder_l;
-	Ultrasonic * range_finder_r;
+	Ultrasonic * us_l;
+	Ultrasonic * us_r;
+	Rangefinder * rangefinder;
 	
 	Gamepad * pilot;
 	Gamepad * copilot;
@@ -129,10 +131,12 @@ public:
 		
 		winch = new Winch(winch_motor, clutch, winch_encoder, winch_zero_switch, winch_max_switch);
 		
-		range_finder_l = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_L_DIO), 
+		us_l = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_L_DIO), 
 				new DigitalInput(RANGE_FINDER_ECHO_CHANNEL_L_DIO));
-		range_finder_r = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_R_DIO),
+		us_r = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_R_DIO),
 				new DigitalInput(RANGE_FINDER_ECHO_CHANNEL_R_DIO));
+		rangefinder = new Rangefinder(us_l, us_r);
+		
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY_DIO);
 		
 		lcd = DriverStationLCD::GetInstance();

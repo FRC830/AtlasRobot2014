@@ -1,5 +1,5 @@
-#ifndef ARM_H_
-#define ARM_H_
+#ifndef RANGEFINDER_H_
+#define RANGEFINDER_H_
 
 #include "WPILib.h"
 
