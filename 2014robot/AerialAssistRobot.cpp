@@ -229,7 +229,9 @@ public:
 			winch->fire();
 		}
 		
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", range_finder_l->GetRangeInches());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_l->GetRangeInches());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", us_r->GetRangeInches());
+		//test
 		
 		arm->update();
 		
