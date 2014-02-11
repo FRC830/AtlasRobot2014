@@ -2,6 +2,7 @@
 #include "Gamepad.h"
 #include "Winch.h"
 #include "Arm.h"
+#include "Rangefinder.h"
 #include <cmath>
 
 class AerialAssistRobot : public IterativeRobot
@@ -19,14 +20,14 @@ class AerialAssistRobot : public IterativeRobot
 	static const int WINCH_ZERO_POINT_DIO = 4;
 	
 	static const int ARM_FLOOR_SWITCH_DIO = 5;
-	static const int ARM_LOW_SWITCH_DIO = 6;
 	static const int ARM_TOP_SWITCH_DIO = 7;
 	static const int ARM_BALL_SWITCH_DIO = 8;
 	
-	static const int ARM_ENCODER_A_CHANNEL = 5;
-	static const int ARM_ENCODER_B_CHANNEL = 6;
-	static const int WINCH_ENCODER_A_CHANNEL = 3;
-	static const int WINCH_ENCODER_B_CHANNEL = 4;
+	static const int ARM_ENCODER_A_CHANNEL = 9;
+	static const int ARM_ENCODER_B_CHANNEL = 10;
+	
+	static const int WINCH_ENCODER_A_CHANNEL = 13;
+	static const int WINCH_ENCODER_B_CHANNEL = 14;
 	
 	static const int GEAR_SHIFT_SOL = 1;
 	static const int CLUTCH_SOL = 2;
@@ -41,17 +42,14 @@ class AerialAssistRobot : public IterativeRobot
 	
     static const int RANGE_FINDER_PING_CHANNEL_L_DIO = 9;
     static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 10;
-    static const int RANGE_FINDER_PING_CHANNEL_R_DIO = 9;
-    static const int RANGE_FINDER_ECHO_CHANNEL_R_DIO = 10;
-    
-    
+    static const int RANGE_FINDER_PING_CHANNEL_R_DIO = 11;
+    static const int RANGE_FINDER_ECHO_CHANNEL_R_DIO = 12;
+	
     float old_turn, old_forward;
     
 	RobotDrive * drive;
 	
-	
 	DigitalInput * arm_floor;
-	DigitalInput * arm_low_goal;
 	DigitalInput * arm_top;
 	DigitalInput * arm_ball;
 	Victor * roller;
@@ -70,16 +68,20 @@ class AerialAssistRobot : public IterativeRobot
 	Solenoid * clutch;
 	Compressor * compressor;
 	
-	Ultrasonic * range_finder_l;
-	Ultrasonic * range_finder_r;
+	Ultrasonic * us_l;
+	Ultrasonic * us_r;
+	Rangefinder * rangefinder;
 	
 	Gamepad * pilot;
 	Gamepad * copilot;
 	
+	//AxisCamera * camera;
+	
 	DriverStationLCD * lcd;
 	
 	
-
+	
+	
 	
     float abs_float(float input){
             return (input < 0.0f) ? -input : input;
@@ -103,6 +105,7 @@ public:
 	/********************************** Init Routines *************************************/
 
 	void RobotInit(void) {
+		
 		drive = new RobotDrive(new Victor(LEFT_DRIVE_PWM), new Victor (RIGHT_DRIVE_PWM));
 		drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, true);
 		drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, true);
@@ -111,13 +114,12 @@ public:
 		
 		roller = new Victor(ROLLER_PWM);
 		arm_lift = new Victor(ARM_LIFT_PWM);
-		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL);
 		arm_floor = new DigitalInput(ARM_FLOOR_SWITCH_DIO);
-		arm_low_goal = new DigitalInput(ARM_LOW_SWITCH_DIO);
 		arm_top = new DigitalInput(ARM_TOP_SWITCH_DIO);
 		arm_ball = new DigitalInput(ARM_BALL_SWITCH_DIO);
+		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL);
 		
-		arm = new Arm(roller, arm_lift, arm_floor, arm_low_goal, arm_top, arm_ball);
+		arm = new Arm(roller, arm_lift, arm_encoder, arm_floor, arm_top, arm_ball);
 		
 		winch_motor = new Victor(WINCH_PWM);
 		winch_encoder = new Encoder(WINCH_ENCODER_A_CHANNEL, WINCH_ENCODER_B_CHANNEL);
@@ -129,16 +131,19 @@ public:
 		
 		winch = new Winch(winch_motor, clutch, winch_encoder, winch_zero_switch, winch_max_switch);
 		
-		range_finder_l = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_L_DIO), 
-				new DigitalInput(RANGE_FINDER_ECHO_CHANNEL_L_DIO));
-		range_finder_r = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_R_DIO),
-				new DigitalInput(RANGE_FINDER_ECHO_CHANNEL_R_DIO));
+		us_l = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_L_DIO, RANGE_FINDER_ECHO_CHANNEL_L_DIO);
+		us_r = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_R_DIO, RANGE_FINDER_ECHO_CHANNEL_R_DIO);
+		rangefinder = new Rangefinder(us_l, us_r);
+		
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY_DIO);
 		
 		lcd = DriverStationLCD::GetInstance();
 		
+		//camera = &AxisCamera::GetInstance();
+		
 		pilot = new Gamepad(1);
 		copilot = new Gamepad(2);
+		
 	}
 	
 	void DisabledInit(void) {
@@ -208,17 +213,11 @@ public:
 		}
 		
 		if (copilot->GetNumberedButton(1)){
-			arm->set_position(Arm::floor);
+			arm->set_position(Arm::FLOOR_POSITION);
 		} else if (copilot->GetNumberedButton(2)){
-			arm->set_position(Arm::low_goal);
+			arm->set_position(Arm::LOW_GOAL_POSITION);
 		} else if (copilot->GetNumberedButton(4)){
-			arm->set_position(Arm::top);
-		}
-		
-		float arm_move = copilot->GetLeftY();
-		if (abs_float(arm_move) > 0.2f){
-			arm->set_position(Arm::none);
-			arm_lift->Set(arm_move);
+			arm->set_position(Arm::TOP_POSITION);
 		}
 		
 		//prime shooter to fire
@@ -241,7 +240,10 @@ public:
 			compressor->Stop();
 		}
 		
+		//camera->GetImage();
+		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_r->GetRangeInches());
 		lcd->UpdateLCD();
 		
 		

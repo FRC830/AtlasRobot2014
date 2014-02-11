@@ -1,11 +1,13 @@
 #include "Rangefinder.h"
 #include <cmath>
 
+
 Rangefinder::Rangefinder(Ultrasonic * us_left, Ultrasonic * us_right){
 	left = us_left;
 	right = us_right;
-	left->SetAutomaticMode(true);
-	right->SetAutomaticMode(true);
+	us_left->SetEnabled(true);
+	us_right->SetEnabled(true);
+	Ultrasonic::SetAutomaticMode(true);
 }
 
 //angle in rads, relative to a position facing directly towards a surface
@@ -13,7 +15,7 @@ Rangefinder::Rangefinder(Ultrasonic * us_left, Ultrasonic * us_right){
 float Rangefinder::robot_angle(){
 	float diff = left->GetRangeInches() - right->GetRangeInches();
 	float angle_rads = atan(diff / SENSOR_DISTANCE);
-	return angle_rads; 
+	return angle_rads;
 }
 
 //return distance between robot and nearest surface
