@@ -23,8 +23,8 @@ class AerialAssistRobot : public IterativeRobot
 	static const int ARM_TOP_SWITCH_DIO = 7;
 	static const int ARM_BALL_SWITCH_DIO = 8;
 	
-	static const int ARM_ENCODER_A_CHANNEL = 11;
-	static const int ARM_ENCODER_B_CHANNEL = 12;
+	static const int ARM_ENCODER_A_CHANNEL = 9;
+	static const int ARM_ENCODER_B_CHANNEL = 10;
 	
 	static const int WINCH_ENCODER_A_CHANNEL = 13;
 	static const int WINCH_ENCODER_B_CHANNEL = 14;
@@ -44,14 +44,10 @@ class AerialAssistRobot : public IterativeRobot
     static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 10;
     static const int RANGE_FINDER_PING_CHANNEL_R_DIO = 11;
     static const int RANGE_FINDER_ECHO_CHANNEL_R_DIO = 12;
-    
-    
-	
 	
     float old_turn, old_forward;
     
 	RobotDrive * drive;
-	
 	
 	DigitalInput * arm_floor;
 	DigitalInput * arm_top;
@@ -78,6 +74,8 @@ class AerialAssistRobot : public IterativeRobot
 	
 	Gamepad * pilot;
 	Gamepad * copilot;
+	
+	//AxisCamera * camera;
 	
 	DriverStationLCD * lcd;
 	
@@ -133,15 +131,15 @@ public:
 		
 		winch = new Winch(winch_motor, clutch, winch_encoder, winch_zero_switch, winch_max_switch);
 		
-		us_l = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_L_DIO), 
-				new DigitalInput(RANGE_FINDER_ECHO_CHANNEL_L_DIO));
-		us_r = new Ultrasonic(new DigitalOutput(RANGE_FINDER_PING_CHANNEL_R_DIO),
-				new DigitalInput(RANGE_FINDER_ECHO_CHANNEL_R_DIO));
+		us_l = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_L_DIO, RANGE_FINDER_ECHO_CHANNEL_L_DIO);
+		us_r = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_R_DIO, RANGE_FINDER_ECHO_CHANNEL_R_DIO);
 		rangefinder = new Rangefinder(us_l, us_r);
 		
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY_DIO);
 		
 		lcd = DriverStationLCD::GetInstance();
+		
+		//camera = &AxisCamera::GetInstance();
 		
 		pilot = new Gamepad(1);
 		copilot = new Gamepad(2);
@@ -240,8 +238,10 @@ public:
 			compressor->Stop();
 		}
 		
+		//camera->GetImage();
+		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_l->GetRangeInches());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_r->GetRangeInches());
 		lcd->UpdateLCD();
 		
 		

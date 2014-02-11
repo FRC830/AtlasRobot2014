@@ -38,7 +38,7 @@ void Arm::update(){
 		pid->Disable();
 		pivot->Set(0.0f);
 	} else {
-		pid->Enable();
+		//pid->Enable();
 	}
 }
 
