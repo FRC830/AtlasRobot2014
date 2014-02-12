@@ -7,13 +7,15 @@
 
 class AerialAssistRobot : public IterativeRobot
 {
-	
+	//PWM pins
 	static const int ROLLER_PWM = 3;
 	static const int ARM_LIFT_PWM = 4;
 	static const int LEFT_DRIVE_PWM = 10;
 	static const int RIGHT_DRIVE_PWM = 1;
 	static const int WINCH_PWM = 5;
 	
+	
+	//Digital IO pins
 	static const int PRESSURE_SWITCH_DIO = 1;
 	static const int COMPRESSOR_RELAY_DIO = 2;
 	static const int WINCH_MAX_LIMIT_DIO = 3;
@@ -29,6 +31,7 @@ class AerialAssistRobot : public IterativeRobot
 	static const int WINCH_ENCODER_A_CHANNEL = 13;
 	static const int WINCH_ENCODER_B_CHANNEL = 14;
 	
+	//Solenoids
 	static const int GEAR_SHIFT_SOL = 1;
 	static const int CLUTCH_SOL = 2;
 	static const bool HIGH_GEAR = true; //TODO: determine which of these is which
@@ -231,10 +234,12 @@ public:
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_l->GetRangeInches());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", us_r->GetRangeInches());
-		//test
 		
 		arm->update();
+		winch->wind_back(1);
+		winch->update();
 		
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", winch->get_target_rotations());
 		//Compressor on button 10
 		if (pilot->GetNumberedButton(10)){
 			compressor->Start();
@@ -245,7 +250,6 @@ public:
 		//camera->GetImage();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_r->GetRangeInches());
 		lcd->UpdateLCD();
 		
 		

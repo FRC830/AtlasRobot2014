@@ -13,6 +13,15 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * s
 	target_rotations = 5;
 }
 
+void Winch::update(){
+	//checks to see if winch still needs to be turned and cataput is not at max
+	if (winch_encoder->Get() < target_rotations && !max_lim_switch->Get()){
+		winch_motor->Set(1.0f);
+	} else {
+		winch_motor->Set(0.0f);//stop winch
+	}	
+}
+
 void Winch::wind_back(float angle){
 	//once this switch is engaged, that means we can start the encoder
 	if (zero_pt_lim_switch->Get()){
@@ -26,12 +35,7 @@ void Winch::wind_back(float angle){
 	}
 	
 	set_target_rotations(computeEcoderStepsFromAngle(angle));
-	
-	if (winch_encoder->Get() < target_rotations && !max_lim_switch->Get()){
-		winch_motor->Set(1.0f);
-	} else {
-		winch_motor->Set(0.0f);
-	}
+
 }
 
 void Winch::fire(){
@@ -46,6 +50,11 @@ void Winch::set_target_rotations(float target){
 
 float Winch::get_target_rotations(){
 	return target_rotations;
+}
+
+void Winch::computeAngleFromDistance(float dist){
+	float theta = PI - REST_ANGLE;//Matt's equations require the acute angle from horiontal
+	
 }
 
 float Winch::computeLengthFromAngle(float angle){
