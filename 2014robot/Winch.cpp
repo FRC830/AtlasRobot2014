@@ -54,7 +54,7 @@ float Winch::get_target_rotations(){
 
 void Winch::computeAngleFromDistance(float dist){
 	float theta = PI - REST_ANGLE;//Matt's equations require the acute angle from horiontal
-	
+	float a=GRAVITY;
 }
 
 float Winch::computeLengthFromAngle(float angle){

@@ -236,7 +236,6 @@ public:
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", us_r->GetRangeInches());
 		
 		arm->update();
-		winch->wind_back(1);
 		winch->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", winch->get_target_rotations());

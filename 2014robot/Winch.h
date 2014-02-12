@@ -30,6 +30,7 @@ private:
 	
 	static const float BALL_MASS = 1.247;//Kg
 	static const float SPRING_CONST = 241;//newton meters per radian
+	static const float GRAVITY = -9.8;//GRAVITY = 10
 	
 	float computeLengthFromAngle(float angle);//radians
 	float computeEncoderStepsFromLength(float length);//inches
