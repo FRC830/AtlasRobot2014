@@ -15,6 +15,11 @@ class DriverStation;
 class Gamepad : public Joystick
 {
 public:
+	static const int LEFT_BUMPER = 5;
+	static const int RIGHT_BUMPER = 6;
+	static const int LEFT_TRIGGER = 7;
+	static const int RIGHT_TRIGGER = 8;
+	
     typedef enum
     {
         kLeftXAxis, kLeftYAxis, kRightXAxis, kRightYAxis

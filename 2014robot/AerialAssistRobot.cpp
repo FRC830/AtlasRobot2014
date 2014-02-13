@@ -64,6 +64,8 @@ class AerialAssistRobot : public IterativeRobot
 	Victor * winch_motor;
 	Encoder * winch_encoder;
 	Winch * winch;
+	float winch_rotations;
+	bool winch_rot_adjusted;
 	DigitalInput * winch_max_switch;
 	DigitalInput * winch_zero_switch;
 	
@@ -156,6 +158,8 @@ public:
 	}
 
 	void TeleopInit(void) {
+		winch_rotations = Winch::STANDARD_ROTATIONS_TARGET;
+		winch_rot_adjusted = false;
 	}
 
 	/********************************** Periodic Routines *************************************/
@@ -207,37 +211,51 @@ public:
 
  		Gamepad::DPadDirection dpad = copilot->GetDPad();
 		//spin the roller forward or back
-		if (dpad == Gamepad::kUp) {
+		if (copilot->GetNumberedButton(4)) {
 			arm->set_roller(0.4f);
-		} else if (dpad == Gamepad::kDown){
+		} else if (copilot->GetNumberedButton(2)){
 			arm->set_roller(-0.4f);
 		} else {
 			arm->set_roller(0.0f);
 		}
 		
-		if (copilot->GetNumberedButton(1)){
+		if (dpad == Gamepad::kDown){
 			arm->set_position(Arm::FLOOR_POSITION);
-		} else if (copilot->GetNumberedButton(2)){
+		} else if (dpad == Gamepad::kLeft){
 			arm->set_position(Arm::LOW_GOAL_POSITION);
-		} else if (copilot->GetNumberedButton(4)){
+		} else if (dpad == Gamepad::kUp) {
 			arm->set_position(Arm::TOP_POSITION);
+		} else {
+			arm_lift->Set(clamp(copilot->GetLeftY(), 0.05));
 		}
 		
 		//prime shooter to fire
-		if (copilot->GetRightY() > 0.3f){
-			//winch->wind_back();
+		
+		float right_y = copilot->GetRightY();
+		if (right_y > 0.3f && !winch_rot_adjusted){
+			winch_rotations += Winch::STANDARD_ROTATIONS_INCREMENT;
+			winch_rot_adjusted = true;
+		} else if (right_y < -0.3f && !winch_rot_adjusted){
+			winch_rotations -= Winch::STANDARD_ROTATIONS_INCREMENT;
+		} else if (abs_float(right_y) <= 0.3 ){
+			winch_rot_adjusted = false;
 		}
 		
-		if (copilot->GetNumberedButton(5)){
+		if (copilot->GetRightPush()){
+			winch->wind_back(winch_rotations);
+		}
+		
+		if (copilot->GetNumberedButton(Gamepad::RIGHT_BUMPER)){
 			winch->fire();
 		}
 		
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_l->GetRangeInches());
-		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", us_r->GetRangeInches());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_l->GetRangeInches());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", us_r->GetRangeInches());
 		
 		arm->update();
 		winch->update();
 		
+		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", winch_encoder->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", winch->get_target_rotations());
 		//Compressor on button 10
 		if (pilot->GetNumberedButton(10)){

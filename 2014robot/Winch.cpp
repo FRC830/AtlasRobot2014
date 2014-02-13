@@ -1,8 +1,6 @@
 #include "Winch.h"
 #include <cmath>
 
-
-
 Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * start_pos, DigitalInput * max_pos) {
 	winch_motor = motor;
 	clutch = sol;
@@ -22,26 +20,30 @@ void Winch::update(){
 	}	
 }
 
-void Winch::wind_back(float angle){
+void Winch::wind_back_angle(float angle){	
+	wind_back(computeEncoderStepsFromAngle(angle));
+}
+
+void Winch::wind_back(float n_rotations){
 	//once this switch is engaged, that means we can start the encoder
 	if (zero_pt_lim_switch->Get()){
-		winch_encoder->Reset();
 		winch_encoder->Start();
-		//only engage clutch when catapult is at rest
-		if (clutch_position == CLUTCH_OUT){
-			clutch->Set(CLUTCH_IN);
-			clutch_position = CLUTCH_IN;
-		}
+	}
+	//only engage clutch when catapult is at rest
+	if (clutch_position == CLUTCH_OUT){
+		clutch->Set(CLUTCH_IN);
+		clutch_position = CLUTCH_IN;
 	}
 	
-	set_target_rotations(computeEcoderStepsFromAngle(angle));
-
+	set_target_rotations(n_rotations);
 }
 
 void Winch::fire(){
 	winch_encoder->Stop();
+	winch_encoder->Reset();
 	clutch->Set(CLUTCH_OUT);
 	clutch_position = CLUTCH_OUT;
+	set_target_rotations(0.0f);
 }
 
 void Winch::set_target_rotations(float target){
@@ -62,10 +64,9 @@ float Winch::computeLengthFromAngle(float angle){
 	float x = CATAPULT_X;
 	float y = CATAPULT_Y;
 	float theta = angle+REST_ANGLE;
-	float WINCH_RADIUS = WINCH_CIRCUMFERENCE/(2*PI);
-	
-	float rest_length = sqrtf( pow((r*cos(REST_ANGLE)+x), 2)  +  pow(r*sin(REST_ANGLE)+y, 2)  - pow(WINCH_RADIUS,2));
-	float pulled_length = sqrtf( pow((r*cos(theta)+x), 2)  +  pow(r*sin(theta)+y, 2)  - pow(WINCH_RADIUS, 2));
+	float winch_radius = WINCH_CIRCUMFERENCE / (2 * PI);
+	float rest_length = sqrtf( pow((r*cos(REST_ANGLE)+x), 2)  +  pow(r*sin(REST_ANGLE)+y, 2)  - pow(winch_radius,2));
+	float pulled_length = sqrtf( pow((r*cos(theta)+x), 2)  +  pow(r*sin(theta)+y, 2)  - pow(winch_radius, 2));
 	
 	return(rest_length - pulled_length);//inches
 }
@@ -75,6 +76,6 @@ float Winch::computeEncoderStepsFromLength(float length){
 	return num_pulses;
 }
 
-float Winch::computeEcoderStepsFromAngle(float angle){
+float Winch::computeEncoderStepsFromAngle(float angle){
 	return computeEncoderStepsFromLength(computeLengthFromAngle(angle));
 }
