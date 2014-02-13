@@ -140,7 +140,7 @@ public:
 		us_r = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_R_DIO, RANGE_FINDER_ECHO_CHANNEL_R_DIO);
 		rangefinder = new Rangefinder(us_l, us_r);
 		
-		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY_DIO);
+		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY);
 		
 		lcd = DriverStationLCD::GetInstance();
 		
