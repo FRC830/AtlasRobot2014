@@ -17,7 +17,7 @@ class AerialAssistRobot : public IterativeRobot
 	
 	//Digital IO pins
 	static const int PRESSURE_SWITCH_DIO = 1;
-	static const int COMPRESSOR_RELAY_DIO = 2;
+	static const int COMPRESSOR_RELAY = 1;
 	static const int WINCH_MAX_LIMIT_DIO = 3;
 	static const int WINCH_ZERO_POINT_DIO = 4;
 	
@@ -160,6 +160,7 @@ public:
 	void TeleopInit(void) {
 		winch_rotations = Winch::STANDARD_ROTATIONS_TARGET;
 		winch_rot_adjusted = false;
+		winch_encoder->Reset();
 	}
 
 	/********************************** Periodic Routines *************************************/
@@ -209,29 +210,32 @@ public:
  			gear_shift->Set(LOW_GEAR);
  		}
 
- 		Gamepad::DPadDirection dpad = copilot->GetDPad();
 		//spin the roller forward or back
-		if (copilot->GetNumberedButton(4)) {
+		if (copilot->GetNumberedButton(Gamepad::F310_Y)) {
 			arm->set_roller(0.4f);
-		} else if (copilot->GetNumberedButton(2)){
+		} else if (copilot->GetNumberedButton(Gamepad::F310_A)){
 			arm->set_roller(-0.4f);
 		} else {
 			arm->set_roller(0.0f);
 		}
 		
-		if (dpad == Gamepad::kDown){
+		float dpad = copilot->GetRawAxis(Gamepad::F310_DPAD_X_AXIS);
+		if (dpad < -0.5f){
 			arm->set_position(Arm::FLOOR_POSITION);
-		} else if (dpad == Gamepad::kLeft){
-			arm->set_position(Arm::LOW_GOAL_POSITION);
-		} else if (dpad == Gamepad::kUp) {
+		} else if (dpad > 0.5f){
 			arm->set_position(Arm::TOP_POSITION);
+		} else if (false) {		//we don't have a control for this right now
+			arm->set_position(Arm::LOW_GOAL_POSITION);
 		} else {
-			arm_lift->Set(clamp(copilot->GetLeftY(), 0.05));
+			float left_y = -copilot->GetRawAxis(Gamepad::F310_LEFT_Y);
+			if (abs_float(left_y) > 0.1){
+				arm_lift->Set(left_y);
+			}
 		}
 		
 		//prime shooter to fire
 		
-		float right_y = copilot->GetRightY();
+		float right_y = -copilot->GetRawAxis(Gamepad::F310_RIGHT_Y);
 		if (right_y > 0.3f && !winch_rot_adjusted){
 			winch_rotations += Winch::STANDARD_ROTATIONS_INCREMENT;
 			winch_rot_adjusted = true;
@@ -241,7 +245,8 @@ public:
 			winch_rot_adjusted = false;
 		}
 		
-		if (copilot->GetRightPush()){
+		if (copilot->GetNumberedButton(Gamepad::F310_R_STICK)){
+			winch_encoder->Start();
 			winch->wind_back(winch_rotations);
 		}
 		
@@ -253,7 +258,11 @@ public:
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", us_r->GetRangeInches());
 		
 		arm->update();
-		winch->update();
+		if (copilot->GetNumberedButton(Gamepad::F310_B) && !winch_max_switch->Get()){
+			winch_motor->Set(1.0);
+		} else {
+			winch->update();
+		}
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", winch_encoder->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", winch->get_target_rotations());
@@ -269,10 +278,7 @@ public:
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->UpdateLCD();
 		
-		
 	}
-
-
 };
 
 START_ROBOT_CLASS(AerialAssistRobot);

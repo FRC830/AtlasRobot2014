@@ -20,6 +20,22 @@ public:
 	static const int LEFT_TRIGGER = 7;
 	static const int RIGHT_TRIGGER = 8;
 	
+	static const int F310_A = 1;
+	static const int F310_B = 2;
+	static const int F310_X = 3;
+	static const int F310_Y = 4;
+	static const int F310_LB = 5;
+	static const int F310_RB = 6;
+	static const int F310_L_STICK = 9;
+	static const int F310_R_STICK = 10;
+	
+	static const int F310_LEFT_Y = 2;
+	static const int F310_LEFT_X = 1;
+	static const int F310_RIGHT_Y = 5;
+	static const int F310_RIGHT_X = 6;
+	static const int F310_TRIGGER_AXIS = 3; //left positive, right negative
+	static const int F310_DPAD_X_AXIS = 6;
+	
     typedef enum
     {
         kLeftXAxis, kLeftYAxis, kRightXAxis, kRightYAxis
