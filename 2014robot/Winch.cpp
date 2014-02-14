@@ -20,7 +20,9 @@ void Winch::update(){
 	}	
 }
 
-void Winch::wind_back_angle(float angle){	
+void Winch::wind_back_dist(float dist){	
+	//winds back given a distance from the goal
+	float angle = computeAngleFromDistance(dist);
 	wind_back(computeEncoderStepsFromAngle(angle));
 }
 
@@ -54,12 +56,27 @@ float Winch::get_target_rotations(){
 	return target_rotations;
 }
 
-void Winch::computeAngleFromDistance(float dist){
+float Winch::computeAngleFromDistance(float dist){
+	float x = (dist)/3.28;//take input in feet, change to meters
+	
 	float theta = PI - REST_ANGLE;//Matt's equations require the acute angle from horiontal
 	float a=GRAVITY;
+	float k = SPRING_CONST*NUM_SPRINGS;
+	float Mb = BALL_MASS;
+	float Mc = CATAPULT_MASS;
+	float h = BALL_HEIGHT;
+	float y = GOAL_HEIGHT;
+	
+	float v = sqrtf(((0.5*a*pow(x, 2)) * tan(theta) * tan(theta+1)) / (y - h - (x*tan(theta))));
+	
+	float e = 0.5*(Mb + Mc) * pow(v, 2);
+	
+	float pull_back_angle = sqrtf(2*e / k);
+	return pull_back_angle;
 }
 
 float Winch::computeLengthFromAngle(float angle){
+	//the ammount of rope pulled in by the winch
 	float r = CATAPULT_ARM_LENGTH;
 	float x = CATAPULT_X;
 	float y = CATAPULT_Y;

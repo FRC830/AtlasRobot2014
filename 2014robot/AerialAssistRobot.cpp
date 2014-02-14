@@ -14,10 +14,11 @@ class AerialAssistRobot : public IterativeRobot
 	static const int RIGHT_DRIVE_PWM = 1;
 	static const int WINCH_PWM = 5;
 	
+	//relay
+	static const int COMPRESSOR_RELAY = 1;
 	
 	//Digital IO pins
-	static const int PRESSURE_SWITCH_DIO = 1;
-	static const int COMPRESSOR_RELAY = 1;
+	static const int PRESSURE_SWITCH_DIO = 2;
 	static const int WINCH_MAX_LIMIT_DIO = 3;
 	static const int WINCH_ZERO_POINT_DIO = 4;
 	
@@ -27,6 +28,11 @@ class AerialAssistRobot : public IterativeRobot
 	
 	static const int ARM_ENCODER_A_CHANNEL = 9;
 	static const int ARM_ENCODER_B_CHANNEL = 10;
+	
+    static const int RANGE_FINDER_PING_CHANNEL_L_DIO = 11;
+    static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 12;
+    //static const int RANGE_FINDER_PING_CHANNEL_R_DIO = 11;
+    //static const int RANGE_FINDER_ECHO_CHANNEL_R_DIO = 12;
 	
 	static const int WINCH_ENCODER_A_CHANNEL = 13;
 	static const int WINCH_ENCODER_B_CHANNEL = 14;
@@ -43,10 +49,6 @@ class AerialAssistRobot : public IterativeRobot
     float max_delta_speed;
     //max_delta_speed = 1.0 / (MAX_ACCEL_TIME * GetLoopsPerSec)
 	
-    static const int RANGE_FINDER_PING_CHANNEL_L_DIO = 9;
-    static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 10;
-    static const int RANGE_FINDER_PING_CHANNEL_R_DIO = 11;
-    static const int RANGE_FINDER_ECHO_CHANNEL_R_DIO = 12;
 	
     float old_turn, old_forward;
     
@@ -71,6 +73,7 @@ class AerialAssistRobot : public IterativeRobot
 	
 	Solenoid * gear_shift;
 	Solenoid * clutch;
+	
 	Compressor * compressor;
 	
 	Ultrasonic * us_l;
@@ -137,8 +140,8 @@ public:
 		winch = new Winch(winch_motor, clutch, winch_encoder, winch_zero_switch, winch_max_switch);
 		
 		us_l = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_L_DIO, RANGE_FINDER_ECHO_CHANNEL_L_DIO);
-		us_r = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_R_DIO, RANGE_FINDER_ECHO_CHANNEL_R_DIO);
-		rangefinder = new Rangefinder(us_l, us_r);
+		//us_r = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_R_DIO, RANGE_FINDER_ECHO_CHANNEL_R_DIO);
+		//rangefinder = new Rangefinder(us_l, us_r);
 		
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY);
 		
@@ -171,6 +174,10 @@ public:
 	}
 
 	void AutonomousPeriodic(void) {
+		//drive forward
+		
+		//then shoot
+		
 	}
 
 	
@@ -272,6 +279,9 @@ public:
 		} else {
 			compressor->Stop();
 		}
+
+		//just using 1 rangefinder for now
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%d inches", us_l->GetRangeInches());
 		
 		//camera->GetImage();
 		

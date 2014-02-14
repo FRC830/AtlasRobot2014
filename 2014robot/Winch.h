@@ -28,8 +28,11 @@ private:
 	static const float BALL_HEIGHT = 37;//Inches: ball height off the ground at rest (center of ball)
 	
 	static const float BALL_MASS = 1.247;//Kg
-	static const float SPRING_CONST = 241;//newton meters per radian
+	static const float SPRING_CONST = 60.25;//newton meters per radian (per spring)
 	static const float GRAVITY = -9.8;//GRAVITY = 10
+	static const int NUM_SPRINGS = 3;
+	static const int CATAPULT_MASS = 1;//(kg) mass of catapult arm, we can play with this value
+	static const int GOAL_HEIGHT = 2;//Meters - height to center of goal
 	
 	float computeLengthFromAngle(float angle);//radians
 	float computeEncoderStepsFromLength(float length);//inches
@@ -43,10 +46,10 @@ public:
 	void set_target_rotations(float n);
 	float get_target_rotations();
 	void wind_back(float n_rotations);
-	void wind_back_angle(float angle);
+	void wind_back_dist(float dist);
 	void fire();
 	void update();
-	void computeAngleFromDistance(float dist);
+	float computeAngleFromDistance(float dist);//input dist in feet
 };
 
 
