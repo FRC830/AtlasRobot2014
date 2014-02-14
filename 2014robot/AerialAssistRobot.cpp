@@ -74,7 +74,7 @@ class AerialAssistRobot : public IterativeRobot
 	Solenoid * gear_shift;
 	Solenoid * clutch;
 	
-	Compressor * compressor;
+	Relay * compressor;
 	
 	Ultrasonic * us_l;
 	Ultrasonic * us_r;
@@ -143,7 +143,7 @@ public:
 		//us_r = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_R_DIO, RANGE_FINDER_ECHO_CHANNEL_R_DIO);
 		//rangefinder = new Rangefinder(us_l, us_r);
 		
-		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY);
+		compressor = new Relay(COMPRESSOR_RELAY, Relay::kForwardOnly);
 		
 		lcd = DriverStationLCD::GetInstance();
 		
@@ -275,9 +275,9 @@ public:
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", winch->get_target_rotations());
 		//Compressor on button 10
 		if (pilot->GetNumberedButton(10)){
-			compressor->Start();
+			compressor->Set(Relay::kOn);
 		} else {
-			compressor->Stop();
+			compressor->Set(Relay::kOff);
 		}
 
 		//just using 1 rangefinder for now
