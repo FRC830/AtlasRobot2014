@@ -25,21 +25,19 @@ float Arm::get_roller() {
 
 void Arm::update(){
 	//don't let the roller keep pulling the ball in if it's pressing the switch
-	if (roller_speed > 0.0f && ball_switch->Get()){
+	if (false /*roller_speed > 0.0f && ball_switch->Get()*/){
 		roller->Set(0.0f);
 	} else {
 		roller->Set(roller_speed);
 	}
-	if (floor_switch->Get()){
+	if (false /*floor_switch->Get()*/){
 		pid->Disable();
 		encoder->Reset();
 		pivot->Set(0.0f);
-	} else if (top_switch->Get()){
+	} else if (false /*top_switch->Get()*/){
 		pid->Disable();
 		pivot->Set(0.0f);
 	} else {
 		//pid->Enable();
 	}
 }
-
-
