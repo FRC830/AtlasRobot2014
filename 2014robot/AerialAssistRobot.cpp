@@ -46,7 +46,7 @@ class AerialAssistRobot : public IterativeRobot
 	static const bool CLUTCH_IN = false;
 	static const bool CLUTCH_OUT = true;
 	
-    static const float MAX_ACCEL_TIME = 0.5f;        //how many seconds we want it to take to get to max speed
+    static const float MAX_ACCEL_TIME = 0.3f;        //how many seconds we want it to take to get to max speed
     float max_delta_speed;
     //max_delta_speed = 1.0 / (MAX_ACCEL_TIME * GetLoopsPerSec)
 	
@@ -227,7 +227,7 @@ public:
          
         //lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", speed, turn);
          
-        drive->ArcadeDrive(turn, speed, false);
+        drive->ArcadeDrive(turn, speed);
         //drive->TankDrive(-pilot->GetLeftY(), pilot->GetRightY());
         old_turn = turn;
         old_forward = speed;
