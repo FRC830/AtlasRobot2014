@@ -10,8 +10,8 @@ class AerialAssistRobot : public IterativeRobot
 	//PWM pins
 	static const int ROLLER_PWM = 4;
 	static const int ARM_LIFT_PWM  = 3;
-	static const int LEFT_DRIVE_PWM = 1;
-	static const int RIGHT_DRIVE_PWM = 10;
+	static const int LEFT_DRIVE_PWM = 8;
+	static const int RIGHT_DRIVE_PWM = 1;
 	static const int WINCH_PWM = 9;
 	
 	//relay
@@ -19,12 +19,12 @@ class AerialAssistRobot : public IterativeRobot
 	
 	//Digital IO pins
 	static const int PRESSURE_SWITCH_DIO = 2;
-	static const int WINCH_MAX_LIMIT_DIO = 3;
-	static const int WINCH_ZERO_POINT_DIO = 4;
+	static const int WINCH_MAX_LIMIT_DIO = 5;
+	static const int WINCH_ZERO_POINT_DIO = 8;
 	
-	static const int ARM_FLOOR_SWITCH_DIO = 5;
+	static const int ARM_FLOOR_SWITCH_DIO = 4;
 	static const int ARM_TOP_SWITCH_DIO = 7;
-	static const int ARM_BALL_SWITCH_DIO = 8;
+	static const int ARM_BALL_SWITCH_DIO = 3;
 	
 	static const int ARM_ENCODER_A_CHANNEL = 9;
 	static const int ARM_ENCODER_B_CHANNEL = 10;
@@ -40,11 +40,11 @@ class AerialAssistRobot : public IterativeRobot
 	//Solenoids
 	static const int GEAR_SHIFT_SOL_FORWARD = 8;
 	static const int GEAR_SHIFT_SOL_REVERSE = 1;
-	static const int CLUTCH_SOL = 4;
-	static const DoubleSolenoid::Value HIGH_GEAR = DoubleSolenoid::kForward; //TODO: determine which of these is which
+	static const int CLUTCH_SOL = 2;
+	static const DoubleSolenoid::Value HIGH_GEAR = DoubleSolenoid::kForward;
 	static const DoubleSolenoid::Value LOW_GEAR = DoubleSolenoid::kReverse;
-	static const bool CLUTCH_IN = true;
-	static const bool CLUTCH_OUT = false;
+	static const bool CLUTCH_IN = false;
+	static const bool CLUTCH_OUT = true;
 	
     static const float MAX_ACCEL_TIME = 0.5f;        //how many seconds we want it to take to get to max speed
     float max_delta_speed;
@@ -83,6 +83,8 @@ class AerialAssistRobot : public IterativeRobot
 	Ultrasonic * us_r;
 	Rangefinder * rangefinder;
 	
+	Timer * timer;
+	
 	Gamepad * pilot;
 	Gamepad * copilot;
 	
@@ -115,8 +117,8 @@ public:
 		drive = new RobotDrive(new Victor(LEFT_DRIVE_PWM), new Victor (RIGHT_DRIVE_PWM));
 		drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, true);
 		drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, true);
-		drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
-		drive->SetInvertedMotor(RobotDrive::kRearRightMotor, true);
+		drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
+		drive->SetInvertedMotor(RobotDrive::kRearRightMotor, false);
 		
 		roller = new Victor(ROLLER_PWM);
 		arm_lift = new Victor(ARM_LIFT_PWM);
@@ -148,23 +150,29 @@ public:
 		
 		//camera = &AxisCamera::GetInstance();
 		
+		timer = new Timer();
+		
 		pilot = new Gamepad(1);
 		copilot = new Gamepad(2);
 		
 	}
 	
 	void DisabledInit(void) {
-		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "not fired");
-		lcd->UpdateLCD();
 	}
 
 	void AutonomousInit(void) {
+		clutch->Set(CLUTCH_IN);
+		gear_shift->Set(LOW_GEAR);
+		timer->Reset();
+		timer->Start();
 	}
 
 	void TeleopInit(void) {
 		winch_rotations = Winch::STANDARD_ROTATIONS_TARGET;
 		winch_rot_adjusted = false;
 		winch_encoder->Reset();
+		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "not fired");
+		lcd->UpdateLCD();
 	}
 
 	/********************************** Periodic Routines *************************************/
@@ -175,10 +183,20 @@ public:
 	}
 
 	void AutonomousPeriodic(void) {
-		//drive forward
+		if (timer->Get() < 1.5){
+			arm_lift->Set(0.4f);
+		}
 		
-		//then shoot
-		
+		if (timer->Get() < 4) {
+			drive->ArcadeDrive(0.1f, 0.5f, false);
+		} else if (timer->Get() < 6){
+			clutch->Set(CLUTCH_OUT); // fire
+		} else {
+			clutch->Set(CLUTCH_IN);
+		}
+		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "auton");
+		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f", timer->Get());
+		lcd->UpdateLCD();
 	}
 
 	void TeleopPeriodic(void) {
@@ -205,8 +223,8 @@ public:
          
         //lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", speed, turn);
          
-        drive->ArcadeDrive(-turn, speed / 1.5); //turn needs to be reversed
-        //drive->TankDrive(pilot->GetLeftY(), pilot->GetRightY());
+        drive->ArcadeDrive(-turn, speed, false); //turn needs to be reversed
+        //drive->TankDrive(-pilot->GetLeftY(), pilot->GetRightY());
         old_turn = turn;
         old_forward = speed;
 		
@@ -217,27 +235,36 @@ public:
  		}
 
 		//spin the roller forward or back
-		if (copilot->GetNumberedButton(Gamepad::F310_Y)) {
-			arm->set_roller(0.7f);
+		if ((copilot->GetNumberedButton(Gamepad::F310_Y) && arm_ball->Get()) 
+				|| copilot->GetNumberedButton(Gamepad::F310_X)) {
+			roller->Set(1.0f);//move in
 		} else if (copilot->GetNumberedButton(Gamepad::F310_A)){
-			arm->set_roller(-1.0f);
+			roller->Set(-1.0f);//move out
 		} else {
-			arm->set_roller(0.0f);
+			roller->Set(0.0f);
 		}
 		
 		float dpad = copilot->GetRawAxis(Gamepad::F310_DPAD_X_AXIS);
+		
 		if (dpad < -0.5f){
 			arm->set_position(Arm::FLOOR_POSITION);
 		} else if (dpad > 0.5f){
 			arm->set_position(Arm::TOP_POSITION);
 		} else if (false) {		//we don't have a control for this right now
 			arm->set_position(Arm::LOW_GOAL_POSITION);
+		}
+		
+		float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f", left_y);
+		
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%d", arm_top->Get());
+		if (left_y > 0.3f /*&& !arm_top->Get()*/) {
+			arm_lift->Set(0.5f);
+		} else if (left_y < -0.3f){
+			arm_lift->Set(-0.5f);//put arm down
+			roller->Set(0.5f);
 		} else {
-			float left_y = -copilot->GetRawAxis(Gamepad::F310_LEFT_Y);
-			lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f", left_y);
-			if (abs_float(left_y) > 0.1){
-				arm_lift->Set(left_y*0.3f);
-			}
+			arm_lift->Set(0.0f);
 		}
 		
 		//prime shooter to fire
@@ -258,20 +285,26 @@ public:
 		}
 		
 		if (copilot->GetNumberedButton(Gamepad::RIGHT_BUMPER)){
-			winch->fire();
-			lcd->PrintfLine(DriverStationLCD::kUser_Line5, "fired");
+			//winch->fire();
+			clutch->Set(CLUTCH_OUT);
+			lcd->PrintfLine(DriverStationLCD::kUser_Line5, "firing");
+		} else {
+			clutch->Set(CLUTCH_IN);
+			lcd->PrintfLine(DriverStationLCD::kUser_Line5, "not firing");
 		}
 		
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_l->GetRangeInches());
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", us_r->GetRangeInches());
 		
-		arm->update();
+		//arm->update();
+		
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "catapult: %d", winch_max_switch->Get());
+		
 		if (copilot->GetNumberedButton(Gamepad::F310_B) && !winch_max_switch->Get()){
-			winch_motor->Set(1.0);
-			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "running winch");
+			winch_motor->Set(-0.6f); //this needs to be a negative value
 		} else {
 			//winch->update();
-			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "no winch");
+			winch_motor->Set(0.0f);
 		}
 		
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", winch_encoder->Get());
@@ -283,6 +316,8 @@ public:
 		} else {
 			compressor->Set(Relay::kOff);
 		}
+		
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "pressure: %d", pressure_switch->Get());
 		
 		//just using 1 rangefinder for now
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%d inches", us_l->GetRangeInches());

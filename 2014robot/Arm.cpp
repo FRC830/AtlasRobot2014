@@ -25,7 +25,7 @@ float Arm::get_roller() {
 
 void Arm::update(){
 	//don't let the roller keep pulling the ball in if it's pressing the switch
-	if (false /*roller_speed > 0.0f && ball_switch->Get()*/){
+	if (roller_speed > 0.0f && !ball_switch->Get()){
 		roller->Set(0.0f);
 	} else {
 		roller->Set(roller_speed);
