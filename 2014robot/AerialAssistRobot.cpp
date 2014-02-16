@@ -8,10 +8,10 @@
 class AerialAssistRobot : public IterativeRobot
 {
 	//PWM pins
-	static const int ROLLER_PWM = 4;
+	static const int ROLLER_PWM = 4; //4
 	static const int ARM_LIFT_PWM  = 3;
-	static const int LEFT_DRIVE_PWM = 8;
-	static const int RIGHT_DRIVE_PWM = 1;
+	static const int LEFT_DRIVE_PWM = 8; //8
+	static const int RIGHT_DRIVE_PWM = 1; //1
 	static const int WINCH_PWM = 9;
 	
 	//relay
@@ -249,7 +249,7 @@ public:
 		
 		float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
 		
-		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%d", arm_top->Get());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%d", arm_top->Get());
 		if (left_y > 0.3f) {
 			arm->move_up();
 		} else if (left_y < -0.3f){
@@ -273,7 +273,7 @@ public:
 		lcd->UpdateLCD();
 		
 	}
-	
+
 	//storing place for stuff not ready to be implemented yet
 	void UnusedTeleopPeriodic() {
 		//prime shooter to fire
@@ -313,6 +313,39 @@ public:
 		}
 		*/
 	}
+	
+	void TestInit() {
+		TestAllInit();
+	}
+	
+	void TestPeriodic() {
+		TestAllPeriodic();
+	}
+	
+	void TestOneGamepadInit() {
+		
+	}
+	
+	Victor * test_victors[10];
+	DigitalOutput * test_dios[14];
+	void TestAllInit() {
+		for (int i = 0; i < 10; i++){
+			test_victors[i] = new Victor(i);
+		}
+		for (int i = 0; i < 14; i++){
+			test_dios[i] = new DigitalOutput(i);
+		}
+	}
+	
+	void TestAllPeriodic() {
+		for (int i = 0; i < 10; i++){
+			test_victors[i]->Set(1.0f);
+		}
+		for (int i = 0; i < 14; i++){
+			test_dios[i]->Set(true);
+		}
+	}
+	
 };
 
 START_ROBOT_CLASS(AerialAssistRobot);

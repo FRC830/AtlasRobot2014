@@ -38,20 +38,26 @@ void Arm::move_up(){
 
 void Arm::move_down(){
 	pid->Disable();
-	pivot->Set(-0.5f);
+	pivot->Set(-1.0f);
 	if (!roller_set){
-		roller->Set(0.5f); //move the roller to help prevent the ball from being pulled down
+		roller->Set(1.0f); //move the roller to help prevent the ball from being pulled down
 	}
 }
 
 void Arm::move_up_pid(){
-	pid->SetSetpoint(MOVEMENT_RATE);
-	pid->Enable();
+	if (!top_switch->Get()){
+		pid->SetSetpoint(MOVEMENT_RATE);
+		pid->Enable();
+		pivot_set = true;
+	} else {
+		pid->Disable();
+	}
 }
 
 void Arm::move_down_pid(){
 	pid->SetSetpoint(-MOVEMENT_RATE);
 	pid->Enable();
+	pivot_set = true;
 }
 
 void Arm::update(){
