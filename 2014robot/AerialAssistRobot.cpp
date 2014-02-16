@@ -166,14 +166,17 @@ public:
 		gear_shift->Set(LOW_GEAR);
 		timer->Reset();
 		timer->Start();
-		compressor->Start();
+		compressor->Start(); //required by rules
 	}
 
 	void TeleopInit(void) {
+		compressor->Start(); //required by rules
+		
+		/*
 		winch_rotations = Winch::STANDARD_ROTATIONS_TARGET;
 		winch_rot_adjusted = false;
 		winch_encoder->Reset();
-		compressor->Start();
+		*/
 	}
 
 	/********************************** Periodic Routines *************************************/
@@ -185,18 +188,18 @@ public:
 
 	void AutonomousPeriodic(void) {
 		if (timer->Get() < 1.5){
-			arm_lift->Set(0.4f);
+			arm->move_down();
 		}
 		
 		if (timer->Get() < 4) {
 			drive->ArcadeDrive(0.1f, 0.5f, false);
 		} else if (timer->Get() < 6){
-			clutch->Set(CLUTCH_OUT); // fire
-		} else {
-			clutch->Set(CLUTCH_IN);
+			winch->fire();
 		}
+		
+		arm->update();
+		winch->update();
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "auton");
-		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f", timer->Get());
 		lcd->UpdateLCD();
 	}
 
@@ -251,7 +254,6 @@ public:
 			arm->move_up();
 		} else if (left_y < -0.3f){
 			arm->move_down();
-			roller->Set(0.5f);
 		}
 		
 		if (copilot->GetNumberedButton(Gamepad::F310_B)){
@@ -262,14 +264,10 @@ public:
 			winch->fire();
 		}
 		
-		//Compressor on button 10
-		if (pilot->GetNumberedButton(10) && !pressure_switch->Get()){
-			compressor->Set(Relay::kOn);
-		} else {
-			compressor->Set(Relay::kOff);
-		}
-		
 		//camera->GetImage();
+		
+		arm->update();
+		winch->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->UpdateLCD();
@@ -304,6 +302,16 @@ public:
 		} else if (false) {		//we don't have a control for this right now
 			arm->set_position(Arm::LOW_GOAL_POSITION);
 		}
+		
+		//Compressor on button 10
+		//flagrantly illegal according to inspector
+		/*
+		if (pilot->GetNumberedButton(10) && !pressure_switch->Get()){
+			compressor->Set(Relay::kOn);
+		} else {
+			compressor->Set(Relay::kOff);
+		}
+		*/
 	}
 };
 

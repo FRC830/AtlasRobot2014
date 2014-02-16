@@ -5,8 +5,7 @@
 
 class Arm{
 private:
-	static const float PIVOT_SPEED = 0.5f;
-	static const int ARM_TOP_POSITION = 100; //encoder ticks; TODO: determine this
+	static const int MOVEMENT_RATE; //encoder rate we want the arm to move at
 	Victor * roller;
 	Victor * pivot;
 	Encoder * encoder;
@@ -28,6 +27,8 @@ public:
 	void drop_ball_in();
 	void move_up();
 	void move_down();
+	void move_up_pid();
+	void move_down_pid();
 	void update();
 };
 
