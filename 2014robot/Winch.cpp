@@ -8,25 +8,62 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * s
 	zero_pt_lim_switch = start_pos;
 	max_lim_switch = max_pos;
 	clutch_position = CLUTCH_OUT;
+	winding_back = false;
+	firing = false;
+	
 	target_rotations = 5;
 }
 
 void Winch::update(){
+	if (winding_back){
+		if (!max_lim_switch->Get()){
+			winch_motor->Set(-0.7f);
+		} else {
+			winding_back = false; //stop winding back if we've hit the switch
+		}
+	}
+	
+	if (!firing){
+		clutch->Set(CLUTCH_IN);
+	} else {
+		firing = false; //so we can push the clutch back in when we stop firing
+	}
+	
 	//checks to see if winch still needs to be turned and cataput is not at max
+	/*
 	if (winch_encoder->Get() < target_rotations && !max_lim_switch->Get()){
 		winch_motor->Set(1.0f);
 	} else {
 		winch_motor->Set(0.0f);//stop winch
+		
 	}	
+	*/
+}
+
+void Winch::wind_back() {
+	winding_back = true;
+}
+
+void Winch::fire(){
+	if (max_lim_switch->Get()){
+		clutch->Set(CLUTCH_OUT);
+		firing = true;
+	}
+	
+	/*
+	set_target_rotations(0.0f);	
+	winch_encoder->Stop();
+	winch_encoder->Reset();
+	*/
 }
 
 void Winch::wind_back_dist(float dist){	
 	//winds back given a distance from the goal
 	float angle = computeAngleFromDistance(dist);
-	wind_back(computeEncoderStepsFromAngle(angle));
+	wind_back_rotations(computeEncoderStepsFromAngle(angle));
 }
 
-void Winch::wind_back(float n_rotations){
+void Winch::wind_back_rotations(float n_rotations){
 	//once this switch is engaged, that means we can start the encoder
 	if (zero_pt_lim_switch->Get()){
 		winch_encoder->Start();
@@ -38,14 +75,6 @@ void Winch::wind_back(float n_rotations){
 	}
 	
 	set_target_rotations(n_rotations);
-}
-
-void Winch::fire(){
-	winch_encoder->Stop();
-	winch_encoder->Reset();
-	clutch->Set(CLUTCH_OUT);
-	clutch_position = CLUTCH_OUT;
-	set_target_rotations(0.0f);
 }
 
 void Winch::set_target_rotations(float target){

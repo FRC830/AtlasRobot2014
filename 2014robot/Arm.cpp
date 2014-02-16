@@ -7,37 +7,60 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 	floor_switch = floor;
 	top_switch = top;
 	ball_switch = ball;
-	roller_speed = 0.0f;
 	pid = new PIDController(0.1, 0.0, 0.0, encoder, pivot);
+	roller_set = false;
+	pivot_set = false;
 }
 
-void Arm::set_position(int pos){
-	pid->SetSetpoint((pos * TOP_POSITION) / 100);
+void Arm::run_roller_in() {
+	if (ball_switch->Get()){
+		roller->Set(1.0f);
+	}
 }
 
-void Arm::set_roller(float val){
-	roller_speed = val;
+void Arm::run_roller_out() {
+	roller->Set(-1.0f);
+	roller_set = true;
 }
 
-float Arm::get_roller() {
-	return roller_speed;
+void Arm::drop_ball_in() {
+	roller->Set(1.0f);
+	roller_set = true;
+}
+
+void Arm::move_up(){
+	if (!top_switch->Get()){
+		pivot->Set(0.5f);
+	}
+}
+
+void Arm::move_down(){
+	pivot->Set(-0.5f);
 }
 
 void Arm::update(){
-	//don't let the roller keep pulling the ball in if it's pressing the switch
-	if (roller_speed > 0.0f && !ball_switch->Get()){
+	if (!roller_set){
 		roller->Set(0.0f);
-	} else {
-		roller->Set(roller_speed);
 	}
-	if (false /*floor_switch->Get()*/){
+	if (!pivot_set) {
+		pivot->Set(0.0f);
+	}
+	
+	/*
+	if (floor_switch->Get()){
 		pid->Disable();
 		encoder->Reset();
 		pivot->Set(0.0f);
-	} else if (false /*top_switch->Get()*/){
+	} else if (top_switch->Get()){
 		pid->Disable();
 		pivot->Set(0.0f);
 	} else {
 		//pid->Enable();
 	}
+	*/
+}
+
+
+void Arm::set_position(int pos){
+	pid->SetSetpoint((pos * TOP_POSITION) / 100);
 }

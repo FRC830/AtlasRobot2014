@@ -76,8 +76,8 @@ class AerialAssistRobot : public IterativeRobot
 	DoubleSolenoid * gear_shift;
 	Solenoid * clutch;
 	
-	DigitalInput * pressure_switch;
-	Relay * compressor;
+	//DigitalInput * pressure_switch;
+	Compressor * compressor;
 	
 	Ultrasonic * us_l;
 	Ultrasonic * us_r;
@@ -143,8 +143,9 @@ public:
 		//us_r = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_R_DIO, RANGE_FINDER_ECHO_CHANNEL_R_DIO);
 		//rangefinder = new Rangefinder(us_l, us_r);
 		
-		pressure_switch = new DigitalInput(PRESSURE_SWITCH_DIO);
-		compressor = new Relay(COMPRESSOR_RELAY, Relay::kForwardOnly);
+		//pressure_switch = new DigitalInput(PRESSURE_SWITCH_DIO);
+		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY);
+		compressor->Start();
 		
 		lcd = DriverStationLCD::GetInstance();
 		
@@ -165,14 +166,14 @@ public:
 		gear_shift->Set(LOW_GEAR);
 		timer->Reset();
 		timer->Start();
+		compressor->Start();
 	}
 
 	void TeleopInit(void) {
 		winch_rotations = Winch::STANDARD_ROTATIONS_TARGET;
 		winch_rot_adjusted = false;
 		winch_encoder->Reset();
-		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "not fired");
-		lcd->UpdateLCD();
+		compressor->Start();
 	}
 
 	/********************************** Periodic Routines *************************************/
@@ -204,7 +205,7 @@ public:
 		//clamp the values so small inputs are ignored
 		float speed = -pilot->GetLeftY();
 		speed = clamp(speed, 0.05f);
-		float turn = pilot->GetRightX();
+		float turn = -pilot->GetRightX();
 		turn = clamp(turn, 0.05f);
 		
         lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", speed, turn);
@@ -223,7 +224,7 @@ public:
          
         //lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", speed, turn);
          
-        drive->ArcadeDrive(-turn, speed, false); //turn needs to be reversed
+        drive->ArcadeDrive(turn, speed, false);
         //drive->TankDrive(-pilot->GetLeftY(), pilot->GetRightY());
         old_turn = turn;
         old_forward = speed;
@@ -235,38 +236,48 @@ public:
  		}
 
 		//spin the roller forward or back
-		if ((copilot->GetNumberedButton(Gamepad::F310_Y) && arm_ball->Get()) 
-				|| copilot->GetNumberedButton(Gamepad::F310_X)) {
-			roller->Set(1.0f);//move in
+		if ((copilot->GetNumberedButton(Gamepad::F310_Y))) {
+			arm->run_roller_in();
 		} else if (copilot->GetNumberedButton(Gamepad::F310_A)){
-			roller->Set(-1.0f);//move out
-		} else {
-			roller->Set(0.0f);
-		}
-		
-		float dpad = copilot->GetRawAxis(Gamepad::F310_DPAD_X_AXIS);
-		
-		if (dpad < -0.5f){
-			arm->set_position(Arm::FLOOR_POSITION);
-		} else if (dpad > 0.5f){
-			arm->set_position(Arm::TOP_POSITION);
-		} else if (false) {		//we don't have a control for this right now
-			arm->set_position(Arm::LOW_GOAL_POSITION);
+			arm->run_roller_out();
+		} else if (copilot->GetNumberedButton(Gamepad::F310_X)){
+			arm->drop_ball_in();
 		}
 		
 		float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f", left_y);
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%d", arm_top->Get());
-		if (left_y > 0.3f /*&& !arm_top->Get()*/) {
-			arm_lift->Set(0.5f);
+		if (left_y > 0.3f) {
+			arm->move_up();
 		} else if (left_y < -0.3f){
-			arm_lift->Set(-0.5f);//put arm down
+			arm->move_down();
 			roller->Set(0.5f);
-		} else {
-			arm_lift->Set(0.0f);
 		}
 		
+		if (copilot->GetNumberedButton(Gamepad::F310_B)){
+			winch->wind_back();
+		}
+		
+		if (copilot->GetNumberedButton(Gamepad::RIGHT_BUMPER)){
+			winch->fire();
+		}
+		
+		//Compressor on button 10
+		if (pilot->GetNumberedButton(10) && !pressure_switch->Get()){
+			compressor->Set(Relay::kOn);
+		} else {
+			compressor->Set(Relay::kOff);
+		}
+		
+		//camera->GetImage();
+		
+		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
+		lcd->UpdateLCD();
+		
+	}
+	
+	//storing place for stuff not ready to be implemented yet
+	void UnusedTeleopPeriodic() {
 		//prime shooter to fire
 		
 		float right_y = -copilot->GetRawAxis(Gamepad::F310_RIGHT_Y);
@@ -281,52 +292,18 @@ public:
 		
 		if (copilot->GetNumberedButton(Gamepad::F310_R_STICK)){
 			winch_encoder->Start();
-			winch->wind_back(winch_rotations);
+			winch->wind_back_rotations(winch_rotations);
 		}
 		
-		if (copilot->GetNumberedButton(Gamepad::RIGHT_BUMPER)){
-			//winch->fire();
-			clutch->Set(CLUTCH_OUT);
-			lcd->PrintfLine(DriverStationLCD::kUser_Line5, "firing");
-		} else {
-			clutch->Set(CLUTCH_IN);
-			lcd->PrintfLine(DriverStationLCD::kUser_Line5, "not firing");
+		float dpad = copilot->GetRawAxis(Gamepad::F310_DPAD_X_AXIS);
+		
+		if (dpad < -0.5f){
+			arm->set_position(Arm::FLOOR_POSITION);
+		} else if (dpad > 0.5f){
+			arm->set_position(Arm::TOP_POSITION);
+		} else if (false) {		//we don't have a control for this right now
+			arm->set_position(Arm::LOW_GOAL_POSITION);
 		}
-		
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%f", us_l->GetRangeInches());
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", us_r->GetRangeInches());
-		
-		//arm->update();
-		
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "catapult: %d", winch_max_switch->Get());
-		
-		if (copilot->GetNumberedButton(Gamepad::F310_B) && !winch_max_switch->Get()){
-			winch_motor->Set(-0.6f); //this needs to be a negative value
-		} else {
-			//winch->update();
-			winch_motor->Set(0.0f);
-		}
-		
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line5, "%f", winch_encoder->Get());
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", winch->get_target_rotations());
-		
-		//Compressor on button 10
-		if (pilot->GetNumberedButton(10) && !pressure_switch->Get()){
-			compressor->Set(Relay::kOn);
-		} else {
-			compressor->Set(Relay::kOff);
-		}
-		
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "pressure: %d", pressure_switch->Get());
-		
-		//just using 1 rangefinder for now
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%d inches", us_l->GetRangeInches());
-		
-		//camera->GetImage();
-		
-		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
-		lcd->UpdateLCD();
-		
 	}
 };
 

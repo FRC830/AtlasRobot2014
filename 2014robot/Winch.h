@@ -14,6 +14,8 @@ private:
 	static const bool CLUTCH_IN = true; //TODO: determine this
 	static const bool CLUTCH_OUT = false;
 	float target_rotations;
+	bool winding_back;
+	bool firing;
 	
 	static const double PI = 3.1415926535;
 	static const int PULSES_PER_REV = 250;
@@ -45,8 +47,9 @@ public:
 	Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * start_pos, DigitalInput * max_pos);
 	void set_target_rotations(float n);
 	float get_target_rotations();
-	void wind_back(float n_rotations);
+	void wind_back_rotations(float n_rotations);
 	void wind_back_dist(float dist);
+	void wind_back();
 	void fire();
 	void update();
 	float computeAngleFromDistance(float dist);//input dist in feet
