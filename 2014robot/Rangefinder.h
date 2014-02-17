@@ -6,16 +6,15 @@
 class Rangefinder {
 private:
 	static const float SENSOR_DISTANCE = 1.0f; //distance between the two sensors, in inches
-	Ultrasonic * left;
-	Ultrasonic * right;
-    int distance_state_l;
-    int counter_l;
+	Ultrasonic * ultrasonic;
+    int distance_state;
+    int counter;
     float distance;
     float distance_group[ARRAY_LENGTH];
     int current_array_point;
     int invalid_count;
 public:
-	Rangefinder(Ultrasonic * us_left, Ultrasonic * us_right);
+	Rangefinder(Ultrasonic * us);
 	float robot_angle();
 	float robot_distance();
 	void update();

@@ -34,14 +34,17 @@ void Arm::move_up(){
 	if (!top_switch->Get()){
 		pivot->Set(0.5f);
 	}
+	pivot_set = true;
 }
 
 void Arm::move_down(){
 	pid->Disable();
-	pivot->Set(-1.0f);
+	pivot->Set(-0.5f);
 	if (!roller_set){
 		roller->Set(1.0f); //move the roller to help prevent the ball from being pulled down
+		roller_set = true;
 	}
+	pivot_set = true;
 }
 
 void Arm::move_up_pid(){
@@ -87,5 +90,5 @@ void Arm::update(){
 
 
 void Arm::set_position(int pos){
-	pid->SetSetpoint((pos * TOP_POSITION) / 100);
+	//pid->SetSetpoint((pos * TOP_POSITION) / 100);
 }
