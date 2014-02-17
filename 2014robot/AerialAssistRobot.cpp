@@ -29,8 +29,8 @@ class AerialAssistRobot : public IterativeRobot
 	static const int ARM_ENCODER_A_CHANNEL = 1;
 	static const int ARM_ENCODER_B_CHANNEL = 2;
 	
-    static const int RANGE_FINDER_PING_CHANNEL_L_DIO = 13;
-    static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 14;
+    static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
+    static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
 	
 	static const int WINCH_ENCODER_A_CHANNEL = 11;
 	static const int WINCH_ENCODER_B_CHANNEL = 12;
@@ -136,7 +136,7 @@ public:
 		
 		winch = new Winch(winch_motor, clutch, winch_encoder, winch_zero_switch, winch_max_switch);
 		
-		ultrasonic = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_L_DIO, RANGE_FINDER_ECHO_CHANNEL_L_DIO);
+		ultrasonic = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_DIO, RANGE_FINDER_ECHO_CHANNEL_DIO);
 		rangefinder = new Rangefinder(ultrasonic);
 		
 		//pressure_switch = new DigitalInput(PRESSURE_SWITCH_DIO);
