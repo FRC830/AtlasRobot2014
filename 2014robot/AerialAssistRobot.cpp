@@ -29,11 +29,11 @@ class AerialAssistRobot : public IterativeRobot
 	static const int ARM_ENCODER_A_CHANNEL = 1;
 	static const int ARM_ENCODER_B_CHANNEL = 2;
 	
-    static const int RANGE_FINDER_PING_CHANNEL_L_DIO = 11;
-    static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 12;
+    static const int RANGE_FINDER_PING_CHANNEL_L_DIO = 13;
+    static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 14;
 	
-	static const int WINCH_ENCODER_A_CHANNEL = 13;
-	static const int WINCH_ENCODER_B_CHANNEL = 14;
+	static const int WINCH_ENCODER_A_CHANNEL = 11;
+	static const int WINCH_ENCODER_B_CHANNEL = 12;
 	
 	//Solenoids
 	static const int GEAR_SHIFT_SOL_FORWARD = 8;
