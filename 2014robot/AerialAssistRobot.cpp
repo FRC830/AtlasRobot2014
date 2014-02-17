@@ -325,6 +325,10 @@ public:
 		
 	}
 	
+	void TestOneGamepadPeriodic() {
+		
+	}
+	
 	Victor * test_victors[10];
 	DigitalOutput * test_dios[14];
 	void TestAllInit() {
