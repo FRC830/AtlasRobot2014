@@ -18,7 +18,7 @@ public:
 	Rangefinder(Ultrasonic * us_left, Ultrasonic * us_right);
 	float robot_angle();
 	float robot_distance();
-	void update_sensor();
+	void update();
 };
 
 #endif

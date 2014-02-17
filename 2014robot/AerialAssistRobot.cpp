@@ -268,6 +268,7 @@ public:
 		
 		arm->update();
 		winch->update();
+		rangefinder->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->UpdateLCD();

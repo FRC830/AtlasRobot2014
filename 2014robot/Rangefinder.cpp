@@ -15,7 +15,7 @@ Rangefinder::Rangefinder(Ultrasonic * us_left, Ultrasonic * us_right){
 	current_array_point = 0;
 }
 
-void Rangefinder::update_sensor(){
+void Rangefinder::update(){
 	if(distance_state_l==0){
 		left->Ping();
 		distance_state_l=1;
