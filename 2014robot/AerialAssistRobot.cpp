@@ -8,10 +8,10 @@
 class AerialAssistRobot : public IterativeRobot
 {
 	//PWM pins
-	static const int ROLLER_PWM = 4; //4
-	static const int ARM_LIFT_PWM  = 3;
-	static const int LEFT_DRIVE_PWM = 8; //8
-	static const int RIGHT_DRIVE_PWM = 1; //1
+	static const int ROLLER_PWM = 1;
+	static const int ARM_LIFT_PWM  = 2;
+	static const int LEFT_DRIVE_PWM = 4;
+	static const int RIGHT_DRIVE_PWM = 7;
 	static const int WINCH_PWM = 9;
 	
 	//relay
@@ -23,11 +23,11 @@ class AerialAssistRobot : public IterativeRobot
 	static const int WINCH_ZERO_POINT_DIO = 8;
 	
 	static const int ARM_FLOOR_SWITCH_DIO = 4;
-	static const int ARM_TOP_SWITCH_DIO = 7;
+	static const int ARM_TOP_SWITCH_DIO = 3;
 	static const int ARM_BALL_SWITCH_DIO = 3;
 	
-	static const int ARM_ENCODER_A_CHANNEL = 9;
-	static const int ARM_ENCODER_B_CHANNEL = 10;
+	static const int ARM_ENCODER_A_CHANNEL = 1;
+	static const int ARM_ENCODER_B_CHANNEL = 2;
 	
     static const int RANGE_FINDER_PING_CHANNEL_L_DIO = 11;
     static const int RANGE_FINDER_ECHO_CHANNEL_L_DIO = 12;
@@ -270,6 +270,7 @@ public:
 		winch->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f", arm_encoder->Get());
 		lcd->UpdateLCD();
 		
 	}
