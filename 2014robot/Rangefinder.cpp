@@ -6,7 +6,7 @@ Rangefinder::Rangefinder(Ultrasonic * us_left, Ultrasonic * us_right){
 	left = us_left;
 	right = us_right;
 	us_left->SetEnabled(true);
-	us_right->SetEnabled(true);
+	//us_right->SetEnabled(true);
 	Ultrasonic::SetAutomaticMode(true);
 	invalid_count = 0;
 	for(int i=0; i<ARRAY_LENGTH; i++){

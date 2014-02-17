@@ -19,13 +19,13 @@ class AerialAssistRobot : public IterativeRobot
 	
 	//Digital IO pins
 	static const int PRESSURE_SWITCH_DIO = 2;
-	static const int WINCH_MAX_LIMIT_DIO = 5;
+	static const int WINCH_MAX_LIMIT_DIO = 4;
 	static const int WINCH_ZERO_POINT_DIO = 8;
 	
-	static const int ARM_FLOOR_SWITCH_DIO = 4;
+	static const int ARM_FLOOR_SWITCH_DIO = 10;
 	static const int ARM_TOP_SWITCH_DIO = 3;
-	static const int ARM_BALL_SWITCH_DIO = 3;
-	
+	static const int ARM_LINE_BREAK_DIO = 5; //TODO: wire up line break
+ 	
 	static const int ARM_ENCODER_A_CHANNEL = 1;
 	static const int ARM_ENCODER_B_CHANNEL = 2;
 	
@@ -124,7 +124,7 @@ public:
 		arm_lift = new Victor(ARM_LIFT_PWM);
 		arm_floor = new DigitalInput(ARM_FLOOR_SWITCH_DIO);
 		arm_top = new DigitalInput(ARM_TOP_SWITCH_DIO);
-		arm_ball = new DigitalInput(ARM_BALL_SWITCH_DIO);
+		arm_ball = new DigitalInput(ARM_LINE_BREAK_DIO);
 		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL);
 		
 		arm = new Arm(roller, arm_lift, arm_encoder, arm_floor, arm_top, arm_ball);
@@ -141,7 +141,7 @@ public:
 		
 		us_l = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_L_DIO, RANGE_FINDER_ECHO_CHANNEL_L_DIO);
 		//us_r = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_R_DIO, RANGE_FINDER_ECHO_CHANNEL_R_DIO);
-		//rangefinder = new Rangefinder(us_l, us_r);
+		rangefinder = new Rangefinder(us_l, us_r);
 		
 		//pressure_switch = new DigitalInput(PRESSURE_SWITCH_DIO);
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY);
@@ -160,7 +160,7 @@ public:
 	
 	void DisabledInit(void) {
 	}
-
+	
 	void AutonomousInit(void) {
 		clutch->Set(CLUTCH_IN);
 		gear_shift->Set(LOW_GEAR);
@@ -249,13 +249,14 @@ public:
 		
 		float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
 		
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%d", arm_top->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 		if (left_y > 0.3f) {
 			arm->move_up();
 		} else if (left_y < -0.3f){
 			arm->move_down();
 		}
 		
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "winch: %d", winch_max_switch->Get());
 		if (copilot->GetNumberedButton(Gamepad::F310_B)){
 			winch->wind_back();
 		}
