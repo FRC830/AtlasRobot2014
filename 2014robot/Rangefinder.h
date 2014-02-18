@@ -2,9 +2,10 @@
 #define RANGEFINDER_H_
 
 #include "WPILib.h"
-#define ARRAY_LENGTH 4
+
 class Rangefinder {
 private:
+	static const int ARRAY_LENGTH = 8;
 	static const float SENSOR_DISTANCE = 1.0f; //distance between the two sensors, in inches
 	Ultrasonic * ultrasonic;
     int distance_state;

@@ -20,20 +20,24 @@ class AerialAssistRobot : public IterativeRobot
 	//Digital IO pins
 	static const int PRESSURE_SWITCH_DIO = 6;
 	static const int WINCH_MAX_LIMIT_DIO = 4;
-	static const int WINCH_ZERO_POINT_DIO = 8;
+	static const int WINCH_ZERO_POINT_DIO = 8; //not used
 	
-	static const int ARM_FLOOR_SWITCH_DIO = 10;
+	static const int ARM_FLOOR_SWITCH_DIO = 5; //not used
 	static const int ARM_TOP_SWITCH_DIO = 3;
-	static const int ARM_LINE_BREAK_DIO = 5; //TODO: wire up line break
+	static const int ARM_LINE_BREAK_DIO = 9;
  	
 	static const int ARM_ENCODER_A_CHANNEL = 1;
 	static const int ARM_ENCODER_B_CHANNEL = 2;
 	
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
+    
+    static const int LED_GREEN_DIO = 10;
+    static const int LED_RED_DIO = 11;
+    static const int LED_BLUE_DIO = 12;
 	
-	static const int WINCH_ENCODER_A_CHANNEL = 11;
-	static const int WINCH_ENCODER_B_CHANNEL = 12;
+	static const int WINCH_ENCODER_A_CHANNEL = 5; //not used
+	static const int WINCH_ENCODER_B_CHANNEL = 8; //not used
 	
 	//Solenoids
 	static const int GEAR_SHIFT_SOL_FORWARD = 8;
@@ -47,6 +51,8 @@ class AerialAssistRobot : public IterativeRobot
     static const float MAX_ACCEL_TIME = 0.3f;        //how many seconds we want it to take to get to max speed
     float max_delta_speed;
     //max_delta_speed = 1.0 / (MAX_ACCEL_TIME * GetLoopsPerSec)
+    
+    static const float FIRING_DISTANCE = 120.0f; //TODO: determine this for real
 	
 	
     float old_turn, old_forward;
@@ -187,14 +193,15 @@ public:
 			arm->move_down();
 		}
 		
-		if (timer->Get() < 4) {
+		if (rangefinder->robot_distance() > FIRING_DISTANCE) {
 			drive->ArcadeDrive(0.1f, 0.5f, false);
-		} else if (timer->Get() < 6){
+		} else if (timer->Get() > 6.0){
 			winch->fire();
 		}
 		
 		arm->update();
 		winch->update();
+		rangefinder->update();
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "auton");
 		lcd->UpdateLCD();
 	}
@@ -245,7 +252,7 @@ public:
 		
 		float left_y = -clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
 		
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 		if (left_y > 0.3f) {
 			arm->move_up();
 		} else if (left_y < -0.3f){
@@ -257,8 +264,11 @@ public:
 			winch->wind_back();
 		}
 		
-		if (copilot->GetNumberedButton(Gamepad::RIGHT_BUMPER)){
+		if (copilot->GetNumberedButton(Gamepad::F310_RB)){
+			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
 			winch->fire();
+		} else {
+			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "not firing");
 		}
 		
 		//camera->GetImage();

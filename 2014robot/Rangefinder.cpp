@@ -30,7 +30,7 @@ void Rangefinder::update(){
 				invalid_count = 0;
 				distance_group[current_array_point] = distance;
 				current_array_point++;
-				if(current_array_point>=4){
+				if(current_array_point>=ARRAY_LENGTH){
 					current_array_point = 0;
 				}
 			}
@@ -46,9 +46,8 @@ void Rangefinder::update(){
 
 //return distance between robot and nearest surface
 float Rangefinder::robot_distance(){
-	return distance;
 	
-	if(invalid_count>4){//cannot get good reading
+	if(invalid_count>ARRAY_LENGTH){//cannot get good reading
 		return -1.0;
 	}else{//can get good reading
 		//return avg from dist group

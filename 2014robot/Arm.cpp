@@ -14,8 +14,9 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 }
 
 void Arm::run_roller_in() {
-	if (ball_switch->Get()){
+	if (ball_switch->Get() || !top_switch->Get()){//linebreak not hit, or arm up
 		roller->Set(1.0f);
+		roller_set = true;
 	}
 }
 
@@ -24,7 +25,7 @@ void Arm::run_roller_out() {
 	roller_set = true;
 }
 
-void Arm::drop_ball_in() {
+void Arm::drop_ball_in() {//override for run_roller_in function
 	roller->Set(1.0f);
 	roller_set = true;
 }
@@ -32,7 +33,7 @@ void Arm::drop_ball_in() {
 void Arm::move_up(){
 	pid->Disable();
 	if (top_switch->Get()){
-		pivot->Set(0.75f);
+		pivot->Set(-0.75f);
 	} else {
 		pivot->Set(0.0f);
 	}
@@ -41,7 +42,7 @@ void Arm::move_up(){
 
 void Arm::move_down(){
 	pid->Disable();
-	pivot->Set(-0.5f);
+	pivot->Set(0.5f);
 	if (!roller_set){
 		roller->Set(1.0f); //move the roller to help prevent the ball from being pulled down
 		roller_set = true;
@@ -51,7 +52,7 @@ void Arm::move_down(){
 
 void Arm::move_up_pid(){
 	if (top_switch->Get()){
-		pid->SetSetpoint(MOVEMENT_RATE);
+		pid->SetSetpoint(-MOVEMENT_RATE);
 		pid->Enable();
 		pivot_set = true;
 	} else {
@@ -60,7 +61,7 @@ void Arm::move_up_pid(){
 }
 
 void Arm::move_down_pid(){
-	pid->SetSetpoint(-MOVEMENT_RATE);
+	pid->SetSetpoint(MOVEMENT_RATE);
 	pid->Enable();
 	pivot_set = true;
 }

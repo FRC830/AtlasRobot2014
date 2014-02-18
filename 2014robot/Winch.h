@@ -12,8 +12,8 @@ private:
 	Encoder * winch_encoder;
 	DigitalInput * zero_pt_lim_switch;
 	DigitalInput * max_lim_switch;
-	static const bool CLUTCH_IN = true; //TODO: determine this
-	static const bool CLUTCH_OUT = false;
+	static const bool CLUTCH_IN = false; //TODO: determine this
+	static const bool CLUTCH_OUT = true;
 	float target_rotations;
 	bool winding_back;
 	bool firing;
