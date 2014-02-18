@@ -3,6 +3,7 @@
 #include "Winch.h"
 #include "Arm.h"
 #include "Rangefinder.h"
+#include "DigitalLED.h"
 #include <cmath>
 
 class AerialAssistRobot : public IterativeRobot
@@ -32,8 +33,8 @@ class AerialAssistRobot : public IterativeRobot
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
     
-    static const int LED_GREEN_DIO = 10;
-    static const int LED_RED_DIO = 11;
+    static const int LED_RED_DIO = 10;
+    static const int LED_GREEN_DIO = 11;
     static const int LED_BLUE_DIO = 12;
 	
 	static const int WINCH_ENCODER_A_CHANNEL = 5; //not used
@@ -76,6 +77,10 @@ class AerialAssistRobot : public IterativeRobot
 	DigitalInput * winch_max_switch;
 	DigitalInput * winch_zero_switch;
 	
+	DigitalOutput * led_red_channel;
+	DigitalOutput * led_green_channel;
+	DigitalOutput * led_blue_channel;
+	DigitalLED * led;
 	
 	DoubleSolenoid * gear_shift;
 	Solenoid * clutch;
@@ -136,6 +141,11 @@ public:
 		winch_encoder = new Encoder(WINCH_ENCODER_A_CHANNEL, WINCH_ENCODER_B_CHANNEL);
 		winch_max_switch = new DigitalInput (WINCH_MAX_LIMIT_DIO);
 		winch_zero_switch = new DigitalInput (WINCH_ZERO_POINT_DIO);
+		
+		led_red_channel = new DigitalOutput(LED_RED_DIO);
+		led_green_channel = new DigitalOutput(LED_GREEN_DIO);
+		led_blue_channel = new DigitalOutput(LED_BLUE_DIO);
+		led = new DigitalLED(led_red_channel, led_green_channel, led_blue_channel);
 		
 		gear_shift = new DoubleSolenoid(GEAR_SHIFT_SOL_FORWARD, GEAR_SHIFT_SOL_REVERSE);
 		clutch = new Solenoid(CLUTCH_SOL);
@@ -326,11 +336,11 @@ public:
 	}
 	
 	void TestInit() {
-		TestAllInit();
+		TestOneGamepadInit();
 	}
 	
 	void TestPeriodic() {
-		TestAllPeriodic();
+		TestOneGamepadPeriodic();
 	}
 	
 	void TestOneGamepadInit() {
