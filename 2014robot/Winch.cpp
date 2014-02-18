@@ -10,17 +10,24 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * s
 	clutch_position = CLUTCH_OUT;
 	winding_back = false;
 	firing = false;
+	timer = new Timer();
 	
 	target_rotations = 5;
 }
 
 void Winch::update(){
 	if (winding_back){
-		if (!max_lim_switch->Get()){
+		if (!max_lim_switch->Get() && timer->Get() < 2.0){
 			winch_motor->Set(-0.7f);
 		} else {
 			winding_back = false; //stop winding back if we've hit the switch
+			timer->Stop();
+			timer->Reset();
 		}
+	}
+	
+	if (!winding_back) {
+		winch_motor->Set(0.0f);
 	}
 	
 	if (!firing){
@@ -42,6 +49,7 @@ void Winch::update(){
 
 void Winch::wind_back() {
 	winding_back = true;
+	timer->Start();
 }
 
 void Winch::fire(){

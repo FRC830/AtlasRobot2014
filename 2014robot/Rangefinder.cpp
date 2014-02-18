@@ -8,7 +8,7 @@ Rangefinder::Rangefinder(Ultrasonic * us){
 	Ultrasonic::SetAutomaticMode(true);
 	invalid_count = 0;
 	for(int i=0; i<ARRAY_LENGTH; i++){
-		distance_group[1] = 0;
+		distance_group[i] = 0;
 	}
 	current_array_point = 0;
 }
@@ -27,6 +27,7 @@ void Rangefinder::update(){
 			if(distance>200){//throw out bad values
 				invalid_count++;
 			}else{
+				invalid_count = 0;
 				distance_group[current_array_point] = distance;
 				current_array_point++;
 				if(current_array_point>=4){
@@ -45,6 +46,8 @@ void Rangefinder::update(){
 
 //return distance between robot and nearest surface
 float Rangefinder::robot_distance(){
+	return distance;
+	
 	if(invalid_count>4){//cannot get good reading
 		return -1.0;
 	}else{//can get good reading

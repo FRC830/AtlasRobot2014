@@ -18,7 +18,7 @@ class AerialAssistRobot : public IterativeRobot
 	static const int COMPRESSOR_RELAY = 1;
 	
 	//Digital IO pins
-	static const int PRESSURE_SWITCH_DIO = 2;
+	static const int PRESSURE_SWITCH_DIO = 6;
 	static const int WINCH_MAX_LIMIT_DIO = 4;
 	static const int WINCH_ZERO_POINT_DIO = 8;
 	
@@ -243,7 +243,7 @@ public:
 			arm->drop_ball_in();
 		}
 		
-		float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
+		float left_y = -clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 		if (left_y > 0.3f) {
@@ -252,7 +252,7 @@ public:
 			arm->move_down();
 		}
 		
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "winch: %d", winch_max_switch->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
 		if (copilot->GetNumberedButton(Gamepad::F310_B)){
 			winch->wind_back();
 		}
@@ -269,6 +269,8 @@ public:
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f", arm_encoder->Get());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->robot_distance());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->robot_distance());
 		lcd->UpdateLCD();
 		
 	}

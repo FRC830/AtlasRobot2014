@@ -7,6 +7,7 @@ class Winch {
 private:
 	Victor * winch_motor;
 	Solenoid * clutch;
+	Timer * timer;
 	bool clutch_position;
 	Encoder * winch_encoder;
 	DigitalInput * zero_pt_lim_switch;

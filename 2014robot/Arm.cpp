@@ -31,8 +31,10 @@ void Arm::drop_ball_in() {
 
 void Arm::move_up(){
 	pid->Disable();
-	if (!top_switch->Get()){
-		pivot->Set(0.5f);
+	if (top_switch->Get()){
+		pivot->Set(0.75f);
+	} else {
+		pivot->Set(0.0f);
 	}
 	pivot_set = true;
 }
@@ -48,7 +50,7 @@ void Arm::move_down(){
 }
 
 void Arm::move_up_pid(){
-	if (!top_switch->Get()){
+	if (top_switch->Get()){
 		pid->SetSetpoint(MOVEMENT_RATE);
 		pid->Enable();
 		pivot_set = true;
