@@ -14,10 +14,9 @@ class AerialAssistRobot : public IterativeRobot
 	static const int LEFT_DRIVE_PWM = 4;
 	static const int RIGHT_DRIVE_PWM = 7;
 	static const int WINCH_PWM = 9;
-	static const int LED_RED_PWM = 3;
-	static const int LED_GREEN_PWM = 5;
-	static const int LED_BLUE_PWM = 6;
-	
+	static const int LED_RED_PWM = 5; //5
+	static const int LED_GREEN_PWM = 6;
+	static const int LED_BLUE_PWM = 3; //3
 	//relay
 	static const int COMPRESSOR_RELAY = 1;
 	
@@ -36,10 +35,6 @@ class AerialAssistRobot : public IterativeRobot
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
     
-    static const int LED_RED_DIO = 10;
-    static const int LED_GREEN_DIO = 11;
-    static const int LED_BLUE_DIO = 12;
-	
 	static const int WINCH_ENCODER_A_CHANNEL = 5; //not used
 	static const int WINCH_ENCODER_B_CHANNEL = 8; //not used
 	
@@ -143,9 +138,9 @@ public:
 		winch_max_switch = new DigitalInput (WINCH_MAX_LIMIT_DIO);
 		winch_zero_switch = new DigitalInput (WINCH_ZERO_POINT_DIO);
 		
-		led_red_channel = new PWM(LED_RED_DIO);
-		led_green_channel = new PWM(LED_GREEN_DIO);
-		led_blue_channel = new PWM(LED_BLUE_DIO);
+		led_red_channel = new PWM(LED_RED_PWM);
+		led_green_channel = new PWM(LED_GREEN_PWM);
+		led_blue_channel = new PWM(LED_BLUE_PWM);
 		led = new DigitalLED(led_red_channel, led_green_channel, led_blue_channel);
 		
 		gear_shift = new DoubleSolenoid(GEAR_SHIFT_SOL_FORWARD, GEAR_SHIFT_SOL_REVERSE);
@@ -159,7 +154,7 @@ public:
 		//pressure_switch = new DigitalInput(PRESSURE_SWITCH_DIO);
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY);
 		compressor->Start();
-
+		
 		lcd = DriverStationLCD::GetInstance();
 		ds = DriverStation::GetInstance();
 		if (ds->GetAlliance() == DriverStation::kBlue){
@@ -183,6 +178,7 @@ public:
 	void AutonomousInit(void) {
 		clutch->Set(CLUTCH_IN);
 		gear_shift->Set(LOW_GEAR);
+		winch->wind_back();
 		timer->Reset();
 		timer->Start();
 		compressor->Start(); //required by rules
@@ -214,6 +210,11 @@ public:
 			drive->ArcadeDrive(0.1f, 0.5f, false);
 		} else if (timer->Get() > 6.0){
 			winch->fire();
+		}
+		
+		//LED code
+		if(timer->Get()>0.5 && timer->Get()<1){
+			led->Set(DigitalLED::RED);
 		}
 		
 		arm->update();
@@ -282,25 +283,19 @@ public:
 		}
 		
 		if (copilot->GetNumberedButton(Gamepad::F310_RB)){
-			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
+			if (winch_max_switch->Get()){
+				lcd->PrintfLine(DriverStationLCD::kUser_Line4, "winch not ready");
+			} else {
+				lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
+			}
 			winch->fire();
 		} else {
-			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "not firing");
+			if (winch_max_switch->Get()){
+				lcd->PrintfLine(DriverStationLCD::kUser_Line4, "winch not ready");
+			} else {
+				lcd->PrintfLine(DriverStationLCD::kUser_Line4, "ready to fire");
+			}
 		}
-		
-		/*
-		if (pilot->GetNumberedButton(1)){
-			led->Set(DigitalLED::RED);
-		} else if (pilot->GetNumberedButton(2)){
-			led->Set(DigitalLED::GREEN);
-		} else if (pilot->GetNumberedButton(3)){
-			led->Set(DigitalLED::BLUE);
-		} else if (pilot->GetNumberedButton(4)){
-			led->Set(DigitalLED::WHITE);
-		} else {
-			led->Set(DigitalLED::OFF);
-		}
-		*/
 		
 		if (fabs(FIRING_DISTANCE - rangefinder->robot_distance()) < 6.0f){
 			led->Set(DigitalLED::GREEN);
@@ -317,8 +312,7 @@ public:
 		rangefinder->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
-		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f", arm_encoder->Get());
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->robot_distance());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%d", arm_encoder->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->robot_distance());
 		lcd->UpdateLCD();
 		
@@ -364,12 +358,38 @@ public:
 		*/
 	}
 	
+	float red;
+	float green;
+	float blue;
+	
 	void TestInit() {
-		TestOneGamepadInit();
+		red = 0.0f;
+		green = 0.0f;
+		blue = 0.0f;
 	}
 	
 	void TestPeriodic() {
-		TestOneGamepadPeriodic();
+		float val = -clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
+		val = val * 255.0f;
+		if (val < 0.0f){
+			val = 0.0f;
+		}
+		if (copilot->GetNumberedButton(Gamepad::F310_A)){
+			green = val;
+		} else if (copilot->GetNumberedButton(Gamepad::F310_B)){
+			red = val;
+		} else if (copilot->GetNumberedButton(Gamepad::F310_X)){
+			blue = val;
+		}
+		
+		led->Set((char) red, (char) green, (char) blue);
+		
+		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "test");
+		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "r: %f", red);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "g: %f", green);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "b: %f", blue);
+		lcd->UpdateLCD();
+		
 	}
 	
 	void TestOneGamepadInit() {

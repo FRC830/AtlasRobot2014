@@ -3,7 +3,7 @@
 
 #include "WPILib.h"
 
-class Arm{
+class Arm {
 private:
 	static const int MOVEMENT_RATE = 50; //TODO: determine this, encoder rate we want the arm to move at
 	Victor * roller;
