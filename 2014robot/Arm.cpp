@@ -66,6 +66,10 @@ void Arm::move_down_pid(){
 	pivot_set = true;
 }
 
+bool Arm::ball_captured(){
+	return !ball_switch->Get();
+}
+
 void Arm::update(){
 	if (!roller_set){
 		roller->Set(0.0f);

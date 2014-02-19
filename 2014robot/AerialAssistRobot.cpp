@@ -14,6 +14,9 @@ class AerialAssistRobot : public IterativeRobot
 	static const int LEFT_DRIVE_PWM = 4;
 	static const int RIGHT_DRIVE_PWM = 7;
 	static const int WINCH_PWM = 9;
+	static const int LED_RED_PWM = 3;
+	static const int LED_GREEN_PWM = 5;
+	static const int LED_BLUE_PWM = 6;
 	
 	//relay
 	static const int COMPRESSOR_RELAY = 1;
@@ -46,8 +49,8 @@ class AerialAssistRobot : public IterativeRobot
 	static const int CLUTCH_SOL = 2;
 	static const DoubleSolenoid::Value HIGH_GEAR = DoubleSolenoid::kForward;
 	static const DoubleSolenoid::Value LOW_GEAR = DoubleSolenoid::kReverse;
-	static const bool CLUTCH_IN = false;
-	static const bool CLUTCH_OUT = true;
+	static const bool CLUTCH_IN = true;
+	static const bool CLUTCH_OUT = false;
 	
     static const float MAX_ACCEL_TIME = 0.3f;        //how many seconds we want it to take to get to max speed
     float max_delta_speed;
@@ -77,10 +80,11 @@ class AerialAssistRobot : public IterativeRobot
 	DigitalInput * winch_max_switch;
 	DigitalInput * winch_zero_switch;
 	
-	DigitalOutput * led_red_channel;
-	DigitalOutput * led_green_channel;
-	DigitalOutput * led_blue_channel;
+	PWM * led_red_channel;
+	PWM * led_green_channel;
+	PWM * led_blue_channel;
 	DigitalLED * led;
+	DigitalLED::rgb_color alliance_color;
 	
 	DoubleSolenoid * gear_shift;
 	Solenoid * clutch;
@@ -99,13 +103,10 @@ class AerialAssistRobot : public IterativeRobot
 	//AxisCamera * camera;
 	
 	DriverStationLCD * lcd;
-	
-    float abs_float(float input){
-            return (input < 0.0f) ? -input : input;
-    }
-    
+	DriverStation * ds;
+
 	float clamp(float input, float min){
-		if (abs_float(input) < min){
+		if (fabs(input) < min){
 			return 0.0f;
 		} else {
 			return input;
@@ -142,9 +143,9 @@ public:
 		winch_max_switch = new DigitalInput (WINCH_MAX_LIMIT_DIO);
 		winch_zero_switch = new DigitalInput (WINCH_ZERO_POINT_DIO);
 		
-		led_red_channel = new DigitalOutput(LED_RED_DIO);
-		led_green_channel = new DigitalOutput(LED_GREEN_DIO);
-		led_blue_channel = new DigitalOutput(LED_BLUE_DIO);
+		led_red_channel = new PWM(LED_RED_DIO);
+		led_green_channel = new PWM(LED_GREEN_DIO);
+		led_blue_channel = new PWM(LED_BLUE_DIO);
 		led = new DigitalLED(led_red_channel, led_green_channel, led_blue_channel);
 		
 		gear_shift = new DoubleSolenoid(GEAR_SHIFT_SOL_FORWARD, GEAR_SHIFT_SOL_REVERSE);
@@ -158,8 +159,14 @@ public:
 		//pressure_switch = new DigitalInput(PRESSURE_SWITCH_DIO);
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY);
 		compressor->Start();
-		
+
 		lcd = DriverStationLCD::GetInstance();
+		ds = DriverStation::GetInstance();
+		if (ds->GetAlliance() == DriverStation::kBlue){
+			alliance_color = DigitalLED::BLUE;
+		} else {
+			alliance_color = DigitalLED::RED;
+		}
 		
 		//camera = &AxisCamera::GetInstance();
 		
@@ -281,6 +288,28 @@ public:
 			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "not firing");
 		}
 		
+		/*
+		if (pilot->GetNumberedButton(1)){
+			led->Set(DigitalLED::RED);
+		} else if (pilot->GetNumberedButton(2)){
+			led->Set(DigitalLED::GREEN);
+		} else if (pilot->GetNumberedButton(3)){
+			led->Set(DigitalLED::BLUE);
+		} else if (pilot->GetNumberedButton(4)){
+			led->Set(DigitalLED::WHITE);
+		} else {
+			led->Set(DigitalLED::OFF);
+		}
+		*/
+		
+		if (fabs(FIRING_DISTANCE - rangefinder->robot_distance()) < 6.0f){
+			led->Set(DigitalLED::GREEN);
+		} else if (arm->ball_captured()){
+			led->Set(DigitalLED::YELLOW); 
+		} else {
+			led->Set(alliance_color);
+		}
+		
 		//camera->GetImage();
 		
 		arm->update();
@@ -305,7 +334,7 @@ public:
 			winch_rot_adjusted = true;
 		} else if (right_y < -0.3f && !winch_rot_adjusted){
 			winch_rotations -= Winch::STANDARD_ROTATIONS_INCREMENT;
-		} else if (abs_float(right_y) <= 0.3 ){
+		} else if (fabs(right_y) <= 0.3 ){
 			winch_rot_adjusted = false;
 		}
 		

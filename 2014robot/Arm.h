@@ -29,6 +29,7 @@ public:
 	void move_down();
 	void move_up_pid();
 	void move_down_pid();
+	bool ball_captured();
 	void update();
 };
 
