@@ -14,9 +14,6 @@ class AerialAssistRobot : public IterativeRobot
 	static const int LEFT_DRIVE_PWM = 4;
 	static const int RIGHT_DRIVE_PWM = 7;
 	static const int WINCH_PWM = 9;
-	static const int LED_RED_PWM = 5; //5
-	static const int LED_GREEN_PWM = 6;
-	static const int LED_BLUE_PWM = 3; //3
 	//relay
 	static const int COMPRESSOR_RELAY = 1;
 	
@@ -34,6 +31,10 @@ class AerialAssistRobot : public IterativeRobot
 	
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
+    
+    static const int RED_LED_DIO = 10;
+    static const int GREEN_LED_DIO = 11;
+    static const int BLUE_LED_DIO = 12;
     
 	static const int WINCH_ENCODER_A_CHANNEL = 5; //not used
 	static const int WINCH_ENCODER_B_CHANNEL = 8; //not used
@@ -75,9 +76,9 @@ class AerialAssistRobot : public IterativeRobot
 	DigitalInput * winch_max_switch;
 	DigitalInput * winch_zero_switch;
 	
-	PWM * led_red_channel;
-	PWM * led_green_channel;
-	PWM * led_blue_channel;
+	DigitalOutput * led_red_channel;
+	DigitalOutput * led_green_channel;
+	DigitalOutput * led_blue_channel;
 	DigitalLED * led;
 	DigitalLED::rgb_color alliance_color;
 	
@@ -138,9 +139,9 @@ public:
 		winch_max_switch = new DigitalInput (WINCH_MAX_LIMIT_DIO);
 		winch_zero_switch = new DigitalInput (WINCH_ZERO_POINT_DIO);
 		
-		led_red_channel = new PWM(LED_RED_PWM);
-		led_green_channel = new PWM(LED_GREEN_PWM);
-		led_blue_channel = new PWM(LED_BLUE_PWM);
+		led_red_channel = new DigitalOutput(RED_LED_DIO);
+		led_green_channel = new DigitalOutput(GREEN_LED_DIO);
+		led_blue_channel = new DigitalOutput(BLUE_LED_DIO);
 		led = new DigitalLED(led_red_channel, led_green_channel, led_blue_channel);
 		
 		gear_shift = new DoubleSolenoid(GEAR_SHIFT_SOL_FORWARD, GEAR_SHIFT_SOL_REVERSE);
@@ -358,36 +359,29 @@ public:
 		*/
 	}
 	
-	float red;
-	float green;
-	float blue;
+	DigitalLED::rgb_color color;
 	
 	void TestInit() {
-		red = 0.0f;
-		green = 0.0f;
-		blue = 0.0f;
+		color = DigitalLED::OFF;
 	}
 	
 	void TestPeriodic() {
-		float val = -clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
-		val = val * 255.0f;
-		if (val < 0.0f){
-			val = 0.0f;
-		}
-		if (copilot->GetNumberedButton(Gamepad::F310_A)){
-			green = val;
-		} else if (copilot->GetNumberedButton(Gamepad::F310_B)){
-			red = val;
-		} else if (copilot->GetNumberedButton(Gamepad::F310_X)){
-			blue = val;
+
+		if (copilot->GetNumberedButtonPressed(Gamepad::F310_A)){
+			color ^= DigitalLED::GREEN;	//adds if not present, removes if present
+		} 
+		if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
+			color ^= DigitalLED::RED;
+		} else if (copilot->GetNumberedButtonPressed(Gamepad::F310_X)){
+			color ^= DigitalLED::BLUE;
 		}
 		
-		led->Set((char) red, (char) green, (char) blue);
+		led->Set(color);
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "test");
-		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "r: %f", red);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "g: %f", green);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "b: %f", blue);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "r: %d", color & DigitalLED::RED);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "g: %d", color & DigitalLED::GREEN);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "b: %d", color & DigitalLED::BLUE);
 		lcd->UpdateLCD();
 		
 	}

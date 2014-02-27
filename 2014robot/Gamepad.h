@@ -14,6 +14,8 @@ class DriverStation;
  */
 class Gamepad : public Joystick
 {
+private:
+	bool buttons_pressed[12];
 public:
 	static const int LEFT_BUMPER = 5;
 	static const int RIGHT_BUMPER = 6;
@@ -58,6 +60,8 @@ public:
     float GetRawAxis(UINT32 axis);
 
     bool GetNumberedButton(unsigned buttonNumber);
+    bool GetNumberedButtonPressed(unsigned buttonNumber);
+    bool GetNumberedButtonReleased(unsigned buttonNumber);
     bool GetLeftPush();
     bool GetRightPush();
 

@@ -10,6 +10,9 @@
  */
 Gamepad::Gamepad(UINT32 port) : Joystick(port)
 {
+	for (int i = 0; i < 12; i++){
+		buttons_pressed[i] = false;
+	}
     a_port = port;
     ap_ds = DriverStation::GetInstance();
 }
@@ -96,7 +99,21 @@ float Gamepad::GetAxis(AxisType axis)
  **/
 bool Gamepad::GetNumberedButton(UINT32 button)
 {
-    return ((0x1 << (button-1)) & ap_ds->GetStickButtons(a_port)) != 0;
+    bool val = ((0x1 << (button-1)) & ap_ds->GetStickButtons(a_port)) != 0;
+    buttons_pressed[button] = val;
+    return val;
+}
+
+bool Gamepad::GetNumberedButtonPressed(UINT32 button)
+{
+	return !buttons_pressed[button] & GetNumberedButton(button);
+	//single & so both statements are evaluated
+	//GetNumberedButton must be called so that the value will be updated
+}
+
+bool Gamepad::GetNumberedButtonReleased(UINT32 button)
+{
+	return buttons_pressed[button] & !GetNumberedButton(button);
 }
 
 /**
