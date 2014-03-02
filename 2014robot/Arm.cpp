@@ -30,6 +30,16 @@ void Arm::drop_ball_in() {//override for run_roller_in function
 	roller_set = true;
 }
 
+void Arm::load_sequence() {
+	if (!ball_captured()){
+		run_roller_in();
+	} else if (top_switch->Get()){
+		move_up();
+	} else {
+		drop_ball_in();
+	}
+}
+
 void Arm::move_up(){
 	pid->Disable();
 	if (top_switch->Get()){
@@ -75,6 +85,9 @@ void Arm::update(){
 		roller->Set(0.0f);
 	}
 	if (!pivot_set) {
+		if (ball_captured() && top_switch->Get()){
+			pivot->Set(-0.75);
+		}
 		pivot->Set(0.0f);
 	}
 	

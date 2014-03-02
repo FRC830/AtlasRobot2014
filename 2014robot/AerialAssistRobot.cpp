@@ -199,23 +199,32 @@ public:
 	
 	void DisabledPeriodic(void)  {
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "disabled");
+		led->Set(DigitalLED::OFF);
 		lcd->UpdateLCD();
 	}
 
 	void AutonomousPeriodic(void) {
-		if (timer->Get() < 1.5){
+		double time_s = timer->Get();
+		if (time_s < 3.0){
+			arm->run_roller_in();
+		} else if (time_s < 4.5){
 			arm->move_down();
 		}
 		
-		if (rangefinder->robot_distance() > FIRING_DISTANCE) {
-			drive->ArcadeDrive(0.1f, 0.5f, false);
-		} else if (timer->Get() > 6.0){
+		if (time_s > 6.0){
 			winch->fire();
+		} else if (rangefinder->robot_distance() > FIRING_DISTANCE) {
+			drive->ArcadeDrive(0.1f, 0.5f, false);
 		}
 		
-		//LED code
-		if(timer->Get()>0.5 && timer->Get()<1){
+		//flash LEDs
+		//flash red from (0.0 -> 0.5) and (1.0 -> 1.5), then hold green from 2.0s on
+		if(time_s < 0.5 || time_s > 1.0 && time_s < 1.5){
 			led->Set(DigitalLED::RED);
+		} else if (time_s > 0.5 && time_s < 1.0 || time_s > 1.5 && time_s < 2.0){
+			led->Set(DigitalLED::OFF);
+		} else {
+			led->Set(DigitalLED::GREEN);
 		}
 		
 		arm->update();
@@ -266,7 +275,7 @@ public:
 		} else if (copilot->GetNumberedButton(Gamepad::F310_A)){
 			arm->run_roller_out();
 		} else if (copilot->GetNumberedButton(Gamepad::F310_X)){
-			arm->drop_ball_in();
+			//arm->drop_ball_in();
 		}
 		
 		float left_y = -clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
@@ -281,6 +290,11 @@ public:
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
 		if (copilot->GetNumberedButton(Gamepad::F310_B)){
 			winch->wind_back();
+		}
+		
+		if (copilot->GetNumberedButton(Gamepad::F310_LB)){
+			winch->wind_back();
+			arm->load_sequence();
 		}
 		
 		if (copilot->GetNumberedButton(Gamepad::F310_RB)){
@@ -366,11 +380,9 @@ public:
 	}
 	
 	void TestPeriodic() {
-
 		if (copilot->GetNumberedButtonPressed(Gamepad::F310_A)){
 			color ^= DigitalLED::GREEN;	//adds if not present, removes if present
-		} 
-		if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
+		} else if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
 			color ^= DigitalLED::RED;
 		} else if (copilot->GetNumberedButtonPressed(Gamepad::F310_X)){
 			color ^= DigitalLED::BLUE;

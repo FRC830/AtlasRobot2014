@@ -34,9 +34,10 @@ public:
 	static const int F310_LEFT_Y = 2;
 	static const int F310_LEFT_X = 1;
 	static const int F310_RIGHT_Y = 5;
-	static const int F310_RIGHT_X = 6;
+	static const int F310_RIGHT_X = 4;
 	static const int F310_TRIGGER_AXIS = 3; //left positive, right negative
 	static const int F310_DPAD_X_AXIS = 6;
+	static const int F310_DPAD_Y_AXIS = 2; //mode switches left y and dpad y
 	
     typedef enum
     {

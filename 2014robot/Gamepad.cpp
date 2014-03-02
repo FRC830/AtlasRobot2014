@@ -106,14 +106,14 @@ bool Gamepad::GetNumberedButton(UINT32 button)
 
 bool Gamepad::GetNumberedButtonPressed(UINT32 button)
 {
-	return !buttons_pressed[button] & GetNumberedButton(button);
-	//single & so both statements are evaluated
-	//GetNumberedButton must be called so that the value will be updated
+	bool prev_pressed = buttons_pressed[button];
+	return  GetNumberedButton(button) && !prev_pressed;
 }
 
 bool Gamepad::GetNumberedButtonReleased(UINT32 button)
 {
-	return buttons_pressed[button] & !GetNumberedButton(button);
+	bool prev_pressed = buttons_pressed[button];
+	return !GetNumberedButton(button) && prev_pressed;
 }
 
 /**

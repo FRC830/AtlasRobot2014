@@ -9,7 +9,7 @@ private:
 	DigitalOutput * green_channel;
 	DigitalOutput * blue_channel;
 public:
-	typedef unsigned int rgb_color;
+	typedef char rgb_color;
 	//colors are represented as a bitmap
 	//first bit is red on/off, second is green, third is blue
 	//combination is represented by adding
