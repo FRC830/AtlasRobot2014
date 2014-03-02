@@ -52,7 +52,7 @@ class AerialAssistRobot : public IterativeRobot
     float max_delta_speed;
     //max_delta_speed = 1.0 / (MAX_ACCEL_TIME * GetLoopsPerSec)
     
-    static const float FIRING_DISTANCE = 120.0f; //TODO: determine this for real
+    static const float FIRING_DISTANCE = 180.0f; //TODO: determine this for real
 	
 	
     float old_turn, old_forward;
@@ -214,7 +214,7 @@ public:
 		if (time_s > 6.0){
 			winch->fire();
 		} else if (rangefinder->robot_distance() > FIRING_DISTANCE) {
-			drive->ArcadeDrive(0.1f, 0.5f, false);
+			drive->ArcadeDrive(0.0f, 0.5f, false);
 		}
 		
 		//flash LEDs
