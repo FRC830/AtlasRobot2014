@@ -53,11 +53,11 @@ void Winch::wind_back() {
 }
 
 void Winch::fire(){
-	if (max_lim_switch->Get()){
+	//if (max_lim_switch->Get()){
 		clutch->Set(CLUTCH_OUT);
 		firing = true;
-	}
-	
+	//}         HI SCOTT GUESS WHAT WE CHANGED YOUR CODE. It now fires whenever you press the button regardless of the limit switch state because we had winch issues where the catapult didn't make it all the way back.
+	//comments are fun! i'm not even capitalizing.
 	/*
 	set_target_rotations(0.0f);	
 	winch_encoder->Stop();

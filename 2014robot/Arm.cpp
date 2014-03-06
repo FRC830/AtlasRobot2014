@@ -42,12 +42,13 @@ void Arm::load_sequence() {
 
 void Arm::move_up(){
 	pid->Disable();
-	if (top_switch->Get()){
+	pivot->Set(-.75f);
+	/*if (top_switch->Get()){
 		pivot->Set(-0.75f);
 	} else {
 		pivot->Set(0.0f);
 	}
-	pivot_set = true;
+	pivot_set = true;*/
 }
 
 void Arm::move_down(){
