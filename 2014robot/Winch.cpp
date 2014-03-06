@@ -17,7 +17,7 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * s
 
 void Winch::update(){
 	if (winding_back){
-		if (max_lim_switch->Get() && timer->Get() < 3.0){
+		if (!max_lim_switch->Get() && timer->Get() < 3.0){
 			winch_motor->Set(-0.7f);
 		} else {
 			winding_back = false; //stop winding back if we've hit the switch
@@ -53,7 +53,7 @@ void Winch::wind_back() {
 }
 
 void Winch::fire(){
-	if (!max_lim_switch->Get()){
+	if (max_lim_switch->Get()){
 		clutch->Set(CLUTCH_OUT);
 		firing = true;
 	}

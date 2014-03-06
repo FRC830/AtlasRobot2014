@@ -43,8 +43,8 @@ class AerialAssistRobot : public IterativeRobot
 	static const int GEAR_SHIFT_SOL_FORWARD = 8;
 	static const int GEAR_SHIFT_SOL_REVERSE = 1;
 	static const int CLUTCH_SOL = 2;
-	static const DoubleSolenoid::Value HIGH_GEAR = DoubleSolenoid::kForward;
-	static const DoubleSolenoid::Value LOW_GEAR = DoubleSolenoid::kReverse;
+	static const DoubleSolenoid::Value LOW_GEAR = DoubleSolenoid::kForward;
+	static const DoubleSolenoid::Value HIGH_GEAR = DoubleSolenoid::kReverse;
 	static const bool CLUTCH_IN = true;
 	static const bool CLUTCH_OUT = false;
 	
@@ -305,7 +305,7 @@ public:
 			}
 			winch->fire();
 		} else {
-			if (winch_max_switch->Get()){
+			if (!winch_max_switch->Get()){
 				lcd->PrintfLine(DriverStationLCD::kUser_Line4, "winch not ready");
 			} else {
 				lcd->PrintfLine(DriverStationLCD::kUser_Line4, "ready to fire");
@@ -327,7 +327,7 @@ public:
 		rangefinder->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
-		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%d", arm_encoder->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->robot_distance());
 		lcd->UpdateLCD();
 		
