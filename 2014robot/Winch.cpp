@@ -10,13 +10,15 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * s
 	clutch_position = CLUTCH_OUT;
 	winding_back = false;
 	firing = false;
+	post_fire = false;
 	timer = new Timer();
 	
 	target_rotations = 5;
 }
 
 void Winch::update(){
-	if (winding_back){
+	//sequence for winding winch
+	if (winding_back && !firing && !post_fire){
 		if (!max_lim_switch->Get() && timer->Get() < 3.0){
 			winch_motor->Set(-0.7f);
 		} else {
@@ -26,14 +28,30 @@ void Winch::update(){
 		}
 	}
 	
-	if (!winding_back) {
-		winch_motor->Set(0.0f);
+	//sequence to spin motor to allow clutch to engage again after firing
+	//spins winch for 1 sec after firing ends
+	if (!firing && post_fire){
+		if (timer->Get() < 1.0){
+			timer->Start();
+			winch_motor->Set(-0.2);
+			winding_back = true;
+		} else {
+			timer->Stop();
+			timer->Reset();
+			post_fire = false;
+			winding_back = false;
+		}
 	}
 	
+	//sequence for firing
 	if (!firing){
 		clutch->Set(CLUTCH_IN);
 	} else {
 		firing = false; //so we can push the clutch back in when we stop firing
+	}
+	
+	if (!winding_back) {
+		winch_motor->Set(0.0f);
 	}
 	
 	//checks to see if winch still needs to be turned and cataput is not at max
@@ -56,8 +74,10 @@ void Winch::fire(){
 	//if (max_lim_switch->Get()){
 		clutch->Set(CLUTCH_OUT);
 		firing = true;
-	//}         HI SCOTT GUESS WHAT WE CHANGED YOUR CODE. It now fires whenever you press the button regardless of the limit switch state because we had winch issues where the catapult didn't make it all the way back.
-	//comments are fun! i'm not even capitalizing.
+	//}
+	post_fire = true;
+	timer->Stop();
+	timer->Reset();
 	/*
 	set_target_rotations(0.0f);	
 	winch_encoder->Stop();

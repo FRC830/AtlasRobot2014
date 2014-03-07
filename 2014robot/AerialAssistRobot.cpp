@@ -1,4 +1,3 @@
-#include "WPILib.h"
 #include "Gamepad.h"
 #include "Winch.h"
 #include "Arm.h"
@@ -102,7 +101,7 @@ class AerialAssistRobot : public IterativeRobot
 	DriverStation * ds;
 
 	float clamp(float input, float min){
-		if (fabs(input) < min){
+		if (fabs(input) < fabs(min)){
 			return 0.0f;
 		} else {
 			return input;
@@ -124,6 +123,8 @@ public:
 		drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, true);
 		drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
 		drive->SetInvertedMotor(RobotDrive::kRearRightMotor, false);
+		old_forward = 0.0f;
+		old_turn = 0.0f;
 		
 		roller = new Victor(ROLLER_PWM);
 		arm_lift = new Victor(ARM_LIFT_PWM);
@@ -199,6 +200,7 @@ public:
 	
 	void DisabledPeriodic(void)  {
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "disabled");
+		gear_shift->Set(LOW_GEAR);
 		led->Set(DigitalLED::OFF);
 		lcd->UpdateLCD();
 	}
@@ -207,14 +209,15 @@ public:
 		double time_s = timer->Get();
 		if (time_s < 3.0){
 			arm->run_roller_in();
-		} else if (time_s < 4.5){
+		} else if (time_s < 6.0){
 			arm->move_down();
 		}
 		
-		if (time_s > 6.0){
+		if (time_s > 8.0 && time_s < 8.5){
 			winch->fire();
-		} else if (rangefinder->robot_distance() > FIRING_DISTANCE) {
-			drive->ArcadeDrive(0.0f, 0.5f, false);
+		}
+		if (time_s < 6.0){
+			drive->ArcadeDrive(-0.0f, 0.3f, false);
 		}
 		
 		//flash LEDs
@@ -231,6 +234,8 @@ public:
 		winch->update();
 		rangefinder->update();
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "auton");
+		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "time: %f", time_s);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "dist: %f", rangefinder->robot_distance());
 		lcd->UpdateLCD();
 	}
 
@@ -242,7 +247,7 @@ public:
 		float turn = -pilot->GetRightX();
 		turn = clamp(turn, 0.05f);
 		
-        lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", speed, turn);
+        //lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", speed, turn);
         
 		max_delta_speed = 1.0f / (MAX_ACCEL_TIME * GetLoopsPerSec()); //1.0 represents the maximum victor input
         //float delta_turn = turn - old_turn;
@@ -256,7 +261,7 @@ public:
         //if neither of these is the case, |delta_speed| is less than the max 
         //and we can just use the given value without modification.
          
-        //lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", speed, turn);
+        lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", speed, turn);
          
         drive->ArcadeDrive(turn, speed);
         //drive->TankDrive(-pilot->GetLeftY(), pilot->GetRightY());
@@ -274,11 +279,12 @@ public:
 			arm->run_roller_in();
 		} else if (copilot->GetNumberedButton(Gamepad::F310_A)){
 			arm->run_roller_out();
-		} else if (copilot->GetNumberedButton(Gamepad::F310_X)){
-			//arm->drop_ball_in();
+		} else if (copilot->GetNumberedButton(8)){
+			arm->drop_ball_in();
 		}
 		
-		float left_y = -clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
+		//this is reversed because katie is weird
+		float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
 		
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 		if (left_y > 0.3f) {
@@ -297,7 +303,7 @@ public:
 			arm->load_sequence();
 		}
 		
-		if (copilot->GetNumberedButton(Gamepad::F310_RB)){
+		if (copilot->GetNumberedButton(Gamepad::F310_RB) || pilot->GetNumberedButton(2)){
 			if (winch_max_switch->Get()){
 				lcd->PrintfLine(DriverStationLCD::kUser_Line4, "winch not ready");
 			} else {

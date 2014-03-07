@@ -15,8 +15,10 @@ private:
 	static const bool CLUTCH_IN = true; //TODO: determine this
 	static const bool CLUTCH_OUT = false;
 	float target_rotations;
+	//variables for the update function to keep track of what we're doing
 	bool winding_back;
 	bool firing;
+	bool post_fire; //indicates we're spinning the the winch slowly to allow clutch to engage
 	
 	static const double PI = 3.1415926535;
 	static const int PULSES_PER_REV = 250;

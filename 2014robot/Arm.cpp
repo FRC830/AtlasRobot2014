@@ -47,8 +47,8 @@ void Arm::move_up(){
 		pivot->Set(-0.75f);
 	} else {
 		pivot->Set(0.0f);
-	}
-	pivot_set = true;*/
+	}*/
+	pivot_set = true;
 }
 
 void Arm::move_down(){
