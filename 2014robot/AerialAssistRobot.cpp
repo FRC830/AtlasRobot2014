@@ -31,9 +31,9 @@ class AerialAssistRobot : public IterativeRobot
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
     
-    static const int RED_LED_DIO = 10;
-    static const int GREEN_LED_DIO = 11;
-    static const int BLUE_LED_DIO = 12;
+    static const int RED_LED_DIO = 12;
+    static const int GREEN_LED_DIO = 10;
+    static const int BLUE_LED_DIO = 11;
     
 	static const int WINCH_ENCODER_A_CHANNEL = 5; //not used
 	static const int WINCH_ENCODER_B_CHANNEL = 8; //not used
@@ -56,6 +56,8 @@ class AerialAssistRobot : public IterativeRobot
 	
     float old_turn, old_forward;
     
+    Victor * left_drive;
+    Victor * right_drive;
 	RobotDrive * drive;
 	
 	DigitalInput * arm_floor;
@@ -117,10 +119,11 @@ public:
 	/********************************** Init Routines *************************************/
 
 	void RobotInit(void) {
-		
-		drive = new RobotDrive(new Victor(LEFT_DRIVE_PWM), new Victor (RIGHT_DRIVE_PWM));
-		drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, true);
-		drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, true);
+		left_drive = new Victor(LEFT_DRIVE_PWM);
+		right_drive = new Victor(RIGHT_DRIVE_PWM);
+		drive = new RobotDrive(left_drive, right_drive);
+		drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, false);
+		drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, false);
 		drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
 		drive->SetInvertedMotor(RobotDrive::kRearRightMotor, false);
 		old_forward = 0.0f;
@@ -155,8 +158,6 @@ public:
 		
 		//pressure_switch = new DigitalInput(PRESSURE_SWITCH_DIO);
 		compressor = new Compressor(PRESSURE_SWITCH_DIO, COMPRESSOR_RELAY);
-		compressor->Start();
-		
 		lcd = DriverStationLCD::GetInstance();
 		ds = DriverStation::GetInstance();
 		if (ds->GetAlliance() == DriverStation::kBlue){
@@ -175,9 +176,15 @@ public:
 	}
 	
 	void DisabledInit(void) {
+		lcd->Clear();
 	}
 	
 	void AutonomousInit(void) {
+		lcd->Clear();
+		AutonomousMainInit();
+	}
+	
+	void AutonomousMainInit(void) {
 		clutch->Set(CLUTCH_IN);
 		gear_shift->Set(LOW_GEAR);
 		winch->wind_back();
@@ -185,9 +192,17 @@ public:
 		timer->Start();
 		compressor->Start(); //required by rules
 	}
+	
+	void AutonomousDriveForwardInit(void) {
+		gear_shift->Set(LOW_GEAR);
+		compressor->Start();
+		timer->Reset();
+		timer->Start();
+	}
 
 	void TeleopInit(void) {
 		compressor->Start(); //required by rules
+		lcd->Clear();
 		
 		/*
 		winch_rotations = Winch::STANDARD_ROTATIONS_TARGET;
@@ -200,24 +215,33 @@ public:
 	
 	void DisabledPeriodic(void)  {
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "disabled");
-		gear_shift->Set(LOW_GEAR);
 		led->Set(DigitalLED::OFF);
 		lcd->UpdateLCD();
 	}
 
 	void AutonomousPeriodic(void) {
+		AutonomousMainPeriodic();
+	}
+	
+	void AutonomousMainPeriodic(void) {
 		double time_s = timer->Get();
-		if (time_s < 3.0){
-			arm->run_roller_in();
-		} else if (time_s < 6.0){
+		if (time_s < 5.0){
+			arm->drop_ball_in();
+		} else if (time_s < 7.0){
 			arm->move_down();
 		}
 		
-		if (time_s > 8.0 && time_s < 8.5){
+		if (time_s > 8.5 && time_s < 9.0){
 			winch->fire();
+			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
+		} else {
+			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "");
 		}
-		if (time_s < 6.0){
-			drive->ArcadeDrive(-0.0f, 0.3f, false);
+		if (time_s < 8.0){
+			//drive->ArcadeDrive(0.5f, 0.0f);
+			drive->ArcadeDrive(0.5f, -0.4f);
+			lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", left_drive->Get());
+			lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", right_drive->Get());
 		}
 		
 		//flash LEDs
@@ -235,10 +259,26 @@ public:
 		rangefinder->update();
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "auton");
 		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "time: %f", time_s);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "dist: %f", rangefinder->robot_distance());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "dist: %f", rangefinder->Get());
 		lcd->UpdateLCD();
 	}
 
+	void AutonomousDriveForwardPeriodic() {
+		if (true || timer->Get() < 5.0){
+			//drive->ArcadeDrive(0.5f, 0.0f);
+			drive->ArcadeDrive(0.5f, -0.4f);
+			lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", left_drive->Get());
+			lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", right_drive->Get());
+		}
+		rangefinder->update();
+		arm->update();
+		winch->update();
+		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "auton drive");
+		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "time: %f", timer->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "dist: %f", rangefinder->Get());
+		lcd->UpdateLCD();
+	}
+	
 	void TeleopPeriodic(void) {
 		//standard arcade drive using left and right sticks
 		//clamp the values so small inputs are ignored
@@ -262,8 +302,9 @@ public:
         //and we can just use the given value without modification.
          
         lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", speed, turn);
+        //lcd->PrintfLine(DriverStationLCD::kUser_Line3, "%f %f", left_drive->Get(), right_drive->Get());
          
-        drive->ArcadeDrive(turn, speed);
+        drive->ArcadeDrive(speed, turn);
         //drive->TankDrive(-pilot->GetLeftY(), pilot->GetRightY());
         old_turn = turn;
         old_forward = speed;
@@ -275,20 +316,19 @@ public:
  		}
 
 		//spin the roller forward or back
-		if ((copilot->GetNumberedButton(Gamepad::F310_Y))) {
+		if ((copilot->GetNumberedButton(Gamepad::F310_A))) {
 			arm->run_roller_in();
-		} else if (copilot->GetNumberedButton(Gamepad::F310_A)){
+		} else if (copilot->GetNumberedButton(Gamepad::F310_Y)){
 			arm->run_roller_out();
-		} else if (copilot->GetNumberedButton(8)){
+		} else if (copilot->GetNumberedButton(Gamepad::F310_X)){
 			arm->drop_ball_in();
 		}
 		
 		//this is reversed because katie is weird
 		float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
-		
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
-		if (left_y > 0.3f) {
-			arm->move_up();
+		if (left_y > 0.2f) {
+			arm->move_up(left_y);
 		} else if (left_y < -0.3f){
 			arm->move_down();
 		}
@@ -318,7 +358,7 @@ public:
 			}
 		}
 		
-		if (fabs(FIRING_DISTANCE - rangefinder->robot_distance()) < 6.0f){
+		if (fabs(FIRING_DISTANCE - rangefinder->Get()) < 6.0f){
 			led->Set(DigitalLED::GREEN);
 		} else if (arm->ball_captured()){
 			led->Set(DigitalLED::YELLOW); 
@@ -333,8 +373,9 @@ public:
 		rangefinder->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
-		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
-		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->robot_distance());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "arm: %d", arm_top->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
 		lcd->UpdateLCD();
 		
 	}
@@ -379,27 +420,33 @@ public:
 		*/
 	}
 	
-	DigitalLED::rgb_color color;
+	bool red;
+	bool green;
+	bool blue;
 	
 	void TestInit() {
-		color = DigitalLED::OFF;
+		lcd->Clear();
+		red = false;
+		green = false;
+		blue = false;
 	}
 	
 	void TestPeriodic() {
-		if (copilot->GetNumberedButtonPressed(Gamepad::F310_A)){
-			color ^= DigitalLED::GREEN;	//adds if not present, removes if present
-		} else if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
-			color ^= DigitalLED::RED;
-		} else if (copilot->GetNumberedButtonPressed(Gamepad::F310_X)){
-			color ^= DigitalLED::BLUE;
+		if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
+			red = !red;
 		}
-		
-		led->Set(color);
+		if (copilot->GetNumberedButtonPressed(Gamepad::F310_A)){
+			green = !green;
+		}
+		if (copilot->GetNumberedButtonPressed(Gamepad::F310_X)){
+			blue = !blue;
+		}
+		led->Set(red, green, blue);
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "test");
-		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "r: %d", color & DigitalLED::RED);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "g: %d", color & DigitalLED::GREEN);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "b: %d", color & DigitalLED::BLUE);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line2, "r: %d", red);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "g: %d", green);
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "b: %d", blue);
 		lcd->UpdateLCD();
 		
 	}

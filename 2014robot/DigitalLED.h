@@ -16,13 +16,14 @@ public:
 	static const rgb_color RED = 1;
 	static const rgb_color GREEN = 1 << 1;
 	static const rgb_color BLUE = 1 << 2;
-	static const rgb_color YELLOW = RED + GREEN;
-	static const rgb_color MAGENTA = RED + BLUE;
-	static const rgb_color CYAN = GREEN + BLUE;
-	static const rgb_color WHITE = RED + GREEN + BLUE;
+	static const rgb_color YELLOW = RED | GREEN;
+	static const rgb_color MAGENTA = RED | BLUE;
+	static const rgb_color CYAN = GREEN | BLUE;
+	static const rgb_color WHITE = RED | GREEN | BLUE;
 	static const rgb_color OFF = 0;
 	DigitalLED(DigitalOutput * red, DigitalOutput * green, DigitalOutput * blue);
 	void Set(rgb_color color);
+	void Set(bool red, bool green, bool blue);
 };
 
 #endif

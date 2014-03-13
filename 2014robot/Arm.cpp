@@ -1,4 +1,5 @@
 #include "Arm.h"
+#include <cmath>
 
 Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInput * floor, DigitalInput * top, DigitalInput * ball){
 	roller = roller_motor;
@@ -14,7 +15,7 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 }
 
 void Arm::run_roller_in() {
-	if (ball_switch->Get() || !top_switch->Get()){//linebreak not hit, or arm up
+	if (ball_switch->Get() || top_switch->Get()){//linebreak not hit, or arm up
 		roller->Set(1.0f);
 		roller_set = true;
 	}
@@ -34,16 +35,28 @@ void Arm::load_sequence() {
 	if (!ball_captured()){
 		run_roller_in();
 	} else if (top_switch->Get()){
-		move_up();
+		move_up(0.7);
 	} else {
 		drop_ball_in();
 	}
 }
 
-void Arm::move_up(){
+void Arm::move_up(float val){
+	pid->Disable();
+	float speed = -fabs(val);
+	if(speed < -0.75){
+		speed = -0.75;
+	} else if(speed > 0.0){
+		speed = 0.0;
+	}
+	if (!ball_captured()){
+		speed *= 0.5;
+	}
+	pivot->Set(speed);
+	/*
 	pid->Disable();
 	pivot->Set(-.75f);
-	/*if (top_switch->Get()){
+	if (top_switch->Get()){
 		pivot->Set(-0.75f);
 	} else {
 		pivot->Set(0.0f);
@@ -86,9 +99,6 @@ void Arm::update(){
 		roller->Set(0.0f);
 	}
 	if (!pivot_set) {
-		if (ball_captured() && top_switch->Get()){
-			pivot->Set(-0.75);
-		}
 		pivot->Set(0.0f);
 	}
 	

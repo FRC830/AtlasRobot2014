@@ -45,7 +45,7 @@ void Rangefinder::update(){
 }
 
 //return distance between robot and nearest surface
-float Rangefinder::robot_distance(){
+float Rangefinder::Get(){
 	
 	if(invalid_count>ARRAY_LENGTH){//cannot get good reading
 		return -1.0;

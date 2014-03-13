@@ -7,7 +7,11 @@ DigitalLED::DigitalLED(DigitalOutput * red, DigitalOutput * green, DigitalOutput
 }
 
 void DigitalLED::Set(DigitalLED::rgb_color color) {
-	red_channel->Set(color & RED);
-	green_channel->Set(color & GREEN);
-	blue_channel->Set(color & BLUE);
+	Set((color & RED) != 0,(color & GREEN) != 0, (color & BLUE) != 0);
+}
+
+void DigitalLED::Set(bool red, bool green, bool blue){
+	red_channel->Set(red);
+	green_channel->Set(green);
+	blue_channel->Set(blue);
 }
