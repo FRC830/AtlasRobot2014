@@ -376,48 +376,7 @@ public:
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "arm: %d", arm_top->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
-		lcd->UpdateLCD();
-		
-	}
-
-	//storing place for stuff not ready to be implemented yet
-	void UnusedTeleopPeriodic() {
-		//prime shooter to fire
-		
-		float right_y = -copilot->GetRawAxis(Gamepad::F310_RIGHT_Y);
-		if (right_y > 0.3f && !winch_rot_adjusted){
-			winch_rotations += Winch::STANDARD_ROTATIONS_INCREMENT;
-			winch_rot_adjusted = true;
-		} else if (right_y < -0.3f && !winch_rot_adjusted){
-			winch_rotations -= Winch::STANDARD_ROTATIONS_INCREMENT;
-		} else if (fabs(right_y) <= 0.3 ){
-			winch_rot_adjusted = false;
-		}
-		
-		if (copilot->GetNumberedButton(Gamepad::F310_R_STICK)){
-			winch_encoder->Start();
-			winch->wind_back_rotations(winch_rotations);
-		}
-		
-		float dpad = copilot->GetRawAxis(Gamepad::F310_DPAD_X_AXIS);
-		
-		if (dpad < -0.5f){
-			arm->set_position(Arm::FLOOR_POSITION);
-		} else if (dpad > 0.5f){
-			arm->set_position(Arm::TOP_POSITION);
-		} else if (false) {		//we don't have a control for this right now
-			arm->set_position(Arm::LOW_GOAL_POSITION);
-		}
-		
-		//Compressor on button 10
-		//flagrantly illegal according to inspector
-		/*
-		if (pilot->GetNumberedButton(10) && !pressure_switch->Get()){
-			compressor->Set(Relay::kOn);
-		} else {
-			compressor->Set(Relay::kOff);
-		}
-		*/
+		lcd->UpdateLCD();	
 	}
 	
 	bool red;
