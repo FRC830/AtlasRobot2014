@@ -5,11 +5,12 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 	roller = roller_motor;
 	pivot = pivot_motor;
 	encoder = enc;
-	encoder->SetPIDSourceParameter(Encoder::kRate); //use the rate of rotation as the pid input
+	encoder->SetPIDSourceParameter(Encoder::kDistance); //use the rate of rotation as the pid input
+	encoder->Start();
 	floor_switch = floor;
 	top_switch = top;
 	ball_switch = ball;
-	pid = new PIDController(0.1, 0.0, 0.0, encoder, pivot);
+	pid = new PIDController(0.0, 0.1, 0.0, encoder, pivot);
 	roller_set = false;
 	pivot_set = false;
 }
@@ -75,8 +76,8 @@ void Arm::move_down(){
 }
 
 void Arm::move_up_pid(){
-	if (top_switch->Get()){
-		pid->SetSetpoint(-MOVEMENT_RATE);
+	if (!top_switch->Get()){
+		pid->SetSetpoint(TOP_POSITION);
 		pid->Enable();
 		pivot_set = true;
 	} else {
@@ -85,7 +86,13 @@ void Arm::move_up_pid(){
 }
 
 void Arm::move_down_pid(){
-	pid->SetSetpoint(MOVEMENT_RATE);
+	pid->SetSetpoint(FLOOR_POSITION);
+	pid->Enable();
+	pivot_set = true;
+}
+
+void Arm::hold_position_pid(){
+	pid->SetSetpoint(encoder->Get());
 	pid->Enable();
 	pivot_set = true;
 }
@@ -100,6 +107,11 @@ void Arm::update(){
 	}
 	if (!pivot_set) {
 		pivot->Set(0.0f);
+		pid->Disable();
+	}
+	
+	if (top_switch->Get()){
+		encoder->Reset();
 	}
 	
 	roller_set = false;

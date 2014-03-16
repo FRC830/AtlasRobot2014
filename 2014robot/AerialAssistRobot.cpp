@@ -25,8 +25,8 @@ class AerialAssistRobot : public IterativeRobot
 	static const int ARM_TOP_SWITCH_DIO = 3;
 	static const int ARM_LINE_BREAK_DIO = 9;
  	
-	static const int ARM_ENCODER_A_CHANNEL = 1;
-	static const int ARM_ENCODER_B_CHANNEL = 2;
+	static const int ARM_ENCODER_A_CHANNEL = 2;
+	static const int ARM_ENCODER_B_CHANNEL = 3;
 	
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
@@ -134,7 +134,7 @@ public:
 		arm_floor = new DigitalInput(ARM_FLOOR_SWITCH_DIO);
 		arm_top = new DigitalInput(ARM_TOP_SWITCH_DIO);
 		arm_ball = new DigitalInput(ARM_LINE_BREAK_DIO);
-		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL);
+		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL, true);
 		
 		arm = new Arm(roller, arm_lift, arm_encoder, arm_floor, arm_top, arm_ball);
 		
@@ -329,8 +329,17 @@ public:
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 		if (left_y > 0.2f) {
 			arm->move_up(left_y);
-		} else if (left_y < -0.3f){
+		} else if (left_y < -0.2f){
 			arm->move_down();
+		}
+		
+		float right_y = clamp(copilot->GetRawAxis(Gamepad::F310_RIGHT_Y), 0.05f);
+		if (right_y > 0.2f) {
+			arm->move_up_pid();
+		} else if (right_y < 0.2) {
+			arm->move_down_pid();
+		} else if (right_y == 0.0){
+			//arm->hold_position_pid();
 		}
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
@@ -373,8 +382,8 @@ public:
 		rangefinder->update();
 		
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
-		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "arm: %d", arm_top->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line3, "arm: %d", arm_top->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
 		lcd->UpdateLCD();	
 	}
