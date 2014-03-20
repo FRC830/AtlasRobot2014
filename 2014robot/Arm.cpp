@@ -5,7 +5,8 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 	roller = roller_motor;
 	pivot = pivot_motor;
 	encoder = enc;
-	encoder->SetPIDSourceParameter(Encoder::kDistance); //use the rate of rotation as the pid input
+	encoder->SetPIDSourceParameter(Encoder::kRate); //use the rate of rotation as the pid input
+	encoder->SetDistancePerPulse(90.0 / abs(TOP_POSITION - FLOOR_POSITION)); //correspond encoder ticks to degrees
 	encoder->Start();
 	floor_switch = floor;
 	top_switch = top;
@@ -76,19 +77,25 @@ void Arm::move_down(){
 }
 
 void Arm::move_up_pid(){
+	
 	if (!top_switch->Get()){
-		pid->SetSetpoint(TOP_POSITION);
+		//pid->SetSetpoint(TOP_POSITION);
+		pid->SetSetpoint(-1.0f * MOVEMENT_RATE);
 		pid->Enable();
 		pivot_set = true;
-	} else {
+	}  else {
 		pid->Disable();
 	}
+	
 }
 
 void Arm::move_down_pid(){
-	pid->SetSetpoint(FLOOR_POSITION);
+	
+	//pid->SetSetpoint(FLOOR_POSITION);
+	pid->SetSetpoint(MOVEMENT_RATE);
 	pid->Enable();
 	pivot_set = true;
+	
 }
 
 void Arm::hold_position_pid(){

@@ -5,7 +5,7 @@
 
 class Arm {
 private:
-	static const int MOVEMENT_RATE = 50; //TODO: determine this, encoder rate we want the arm to move at
+	static const float MOVEMENT_RATE = (90.0f / 4.0f); //going down
 	Victor * roller;
 	Victor * pivot;
 	Encoder * encoder;
