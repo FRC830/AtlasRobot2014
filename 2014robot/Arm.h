@@ -26,7 +26,7 @@ public:
 	void run_roller_out();
 	void drop_ball_in();
 	void load_sequence();
-	void move_up(float speed);
+	void move_up();
 	void move_down();
 	void move_up_pid();
 	void move_down_pid();

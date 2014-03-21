@@ -5,6 +5,9 @@
 
 class Winch {
 private:
+	typedef enum e_winch_mode {HOLDING, WINDING_BACK, FIRING, POST_FIRING} winch_mode;
+	winch_mode mode;
+	
 	Victor * winch_motor;
 	Solenoid * clutch;
 	Timer * timer;
@@ -15,10 +18,6 @@ private:
 	static const bool CLUTCH_IN = true; //TODO: determine this
 	static const bool CLUTCH_OUT = false;
 	float target_rotations;
-	//variables for the update function to keep track of what we're doing
-	bool winding_back;
-	bool firing;
-	bool post_fire; //indicates we're spinning the the winch slowly to allow clutch to engage
 	
 	static const double PI = 3.1415926535;
 	static const int PULSES_PER_REV = 250;
@@ -45,16 +44,25 @@ private:
 	
 	
 public:
-	static const float STANDARD_ROTATIONS_TARGET = 2.0f; //TODO: determine this; rotation target for normal shot
-	static const float STANDARD_ROTATIONS_INCREMENT = 0.2; //TODO: determine a good value for this
 	Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * start_pos, DigitalInput * max_pos);
+	/*After this function is called once, the winch winds back until it hits the limit switch.*/
+	void wind_back();
+	/*
+	 * After this function is called once, the clutch is released long enough for the catapult to fire
+	 * then the clutch is pushed back and the winch is spun back briefly to allow it to reengage.
+	 */
+	void fire();
+	/*
+	 * This function MUST be called EVERY CYCLE in order for the effects of the wind_back and fire
+	 * functions to occur.
+	 */
+	void update();
+	
+	//we don't actually use any of these
 	void set_target_rotations(float n);
 	float get_target_rotations();
 	void wind_back_rotations(float n_rotations);
 	void wind_back_dist(float dist);
-	void wind_back();
-	void fire();
-	void update();
 	float computeAngleFromDistance(float dist);//input dist in feet
 };
 

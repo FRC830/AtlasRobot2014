@@ -8,81 +8,65 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * s
 	zero_pt_lim_switch = start_pos;
 	max_lim_switch = max_pos;
 	clutch_position = CLUTCH_OUT;
-	winding_back = false;
-	firing = false;
-	post_fire = false;
-	timer = new Timer();
 	
-	target_rotations = 5;
+	mode = Winch::HOLDING;
+	timer = new Timer();
+	timer->Start();
 }
 
 void Winch::update(){
-	//sequence for winding winch
-	if (winding_back && !firing && !post_fire){
-		if (!max_lim_switch->Get() && timer->Get() < 3.0){
+	double time_s = timer->Get();
+	
+	//wind winch back
+	if (mode == WINDING_BACK){
+		if (!max_lim_switch->Get() && time_s < 3.0){
 			winch_motor->Set(-0.7f);
 		} else {
-			winding_back = false; //stop winding back if we've hit the switch
-			timer->Stop();
-			timer->Reset();
+			mode == HOLDING; //stop winding back if we've hit the switch
 		}
 	}
 	
 	//sequence to spin motor to allow clutch to engage again after firing
 	//spins winch for 1 sec after firing ends
-	if (!firing && post_fire){
+	if (mode == POST_FIRING){
 		if (timer->Get() < 1.0){
-			timer->Start();
 			winch_motor->Set(-0.2);
-			winding_back = true;
 		} else {
-			timer->Stop();
-			timer->Reset();
-			post_fire = false;
-			winding_back = false;
+			mode == HOLDING;
 		}
 	}
 	
 	//sequence for firing
-	if (!firing){
-		clutch->Set(CLUTCH_IN);
-	} else {
-		firing = false; //so we can push the clutch back in when we stop firing
+	if (mode == FIRING){
+		if (time_s < 2.0){
+			clutch->Set(CLUTCH_OUT);
+		} else {
+			mode = POST_FIRING;
+			timer->Reset();
+		}
+	} 
+	if (mode != FIRING) {
+		clutch->Set(CLUTCH_IN); //so we can push the clutch back in when we stop firing
 	}
 	
-	if (!winding_back) {
+	if (mode == HOLDING || mode == FIRING) {
 		winch_motor->Set(0.0f);
 	}
-	
-	//checks to see if winch still needs to be turned and cataput is not at max
-	/*
-	if (winch_encoder->Get() < target_rotations && !max_lim_switch->Get()){
-		winch_motor->Set(1.0f);
-	} else {
-		winch_motor->Set(0.0f);//stop winch
-		
-	}	
-	*/
+
 }
 
 void Winch::wind_back() {
-	winding_back = true;
-	timer->Start();
+	if (mode != Winch::WINDING_BACK){
+		timer->Reset();
+	}
+	mode = Winch::WINDING_BACK;
 }
 
 void Winch::fire(){
-	//if (max_lim_switch->Get()){
-		clutch->Set(CLUTCH_OUT);
-		firing = true;
-	//}
-	post_fire = true;
-	timer->Stop();
-	timer->Reset();
-	/*
-	set_target_rotations(0.0f);	
-	winch_encoder->Stop();
-	winch_encoder->Reset();
-	*/
+	if (mode != Winch::FIRING){
+		timer->Reset();
+	}
+	mode = Winch::FIRING;
 }
 
 void Winch::wind_back_dist(float dist){	

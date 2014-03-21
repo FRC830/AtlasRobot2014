@@ -43,26 +43,15 @@ void Arm::load_sequence() {
 	}
 }
 
-void Arm::move_up(float val){
+void Arm::move_up(){
 	pid->Disable();
-	float speed = -fabs(val);
-	if(speed < -0.75){
-		speed = -0.75;
-	} else if(speed > 0.0){
-		speed = 0.0;
-	}
+	float speed = 0.7f;
+
 	if (!ball_captured()){
-		speed *= 0.5;
+		speed = 0.5;
 	}
 	pivot->Set(speed);
-	/*
-	pid->Disable();
-	pivot->Set(-.75f);
-	if (top_switch->Get()){
-		pivot->Set(-0.75f);
-	} else {
-		pivot->Set(0.0f);
-	}*/
+
 	pivot_set = true;
 }
 
