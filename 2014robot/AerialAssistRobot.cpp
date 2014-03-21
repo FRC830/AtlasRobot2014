@@ -197,16 +197,16 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
 	//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 	if (left_y > 0.2f) {
-		arm->move_up(left_y);
+		arm->move_up();
 	} else if (left_y < -0.2f){
 		arm->move_down();
 	}
 	
 	float right_y = clamp(copilot->GetRawAxis(Gamepad::F310_RIGHT_Y), 0.05f);
 	if (right_y > 0.2f) {
-		arm->move_up_pid();
+		arm->move_up_curved();
 	} else if (right_y < -0.2) {
-		arm->move_down_pid();
+		arm->move_down_curved();
 	} else if (right_y == 0.0){
 		//arm->hold_position_pid();
 	}
