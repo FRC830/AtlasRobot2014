@@ -17,12 +17,13 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * s
 void Winch::update(){
 	double time_s = timer->Get();
 	
-	//wind winch back
-	if (mode == WINDING_BACK){
-		if (!max_lim_switch->Get() && time_s < 3.0){
-			winch_motor->Set(-0.7f);
+	//sequence for firing
+	if (mode == FIRING){
+		if (time_s < 2.0){
+			clutch->Set(CLUTCH_OUT);
 		} else {
-			mode == HOLDING; //stop winding back if we've hit the switch
+			mode = POST_FIRING;
+			timer->Reset();
 		}
 	}
 	
@@ -32,19 +33,20 @@ void Winch::update(){
 		if (timer->Get() < 1.0){
 			winch_motor->Set(-0.2);
 		} else {
-			mode == HOLDING;
+			mode = WINDING_BACK; //automatically wind back after firing
+			timer->Reset();
 		}
 	}
 	
-	//sequence for firing
-	if (mode == FIRING){
-		if (time_s < 2.0){
-			clutch->Set(CLUTCH_OUT);
+	//wind winch back
+	if (mode == WINDING_BACK){
+		if (!max_lim_switch->Get() && time_s < 3.0){
+			winch_motor->Set(-0.7f);
 		} else {
-			mode = POST_FIRING;
-			timer->Reset();
+			mode == HOLDING; //stop winding back if we've hit the switch
 		}
-	} 
+	}
+	
 	if (mode != FIRING) {
 		clutch->Set(CLUTCH_IN); //so we can push the clutch back in when we stop firing
 	}

@@ -184,56 +184,36 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 		gear_shift->Set(HIGH_GEAR);
 	}
 
-	//spin the roller forward or back
-	if ((copilot->GetNumberedButton(Gamepad::F310_A))) {
-		arm->run_roller_in();
-	} else if (copilot->GetNumberedButton(Gamepad::F310_Y)){
-		arm->run_roller_out();
-	} else if (copilot->GetNumberedButton(Gamepad::F310_X)){
-		arm->drop_ball_in();
+	if (copilot->GetNumberedButton(Gamepad::F310_X)){
+		arm->load_sequence();
 	}
 	
+	if (copilot->GetNumberedButton(Gamepad::F310_A)){
+		arm->run_roller_in();
+	}
+	
+	if (copilot->GetNumberedButton(Gamepad::F310_LB) || copilot->GetNumberedButton(Gamepad::F310_RB)){
+		arm->run_roller_out();
+	}
 	
 	float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
 	//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 	if (left_y > 0.2f) {
-		arm->move_up();
+		arm->override();
+		arm->move_up_curved();
 	} else if (left_y < -0.2f){
-		arm->move_down();
+		arm->override();
+		arm->move_down_curved();
 	}
 	
-	float right_y = clamp(copilot->GetRawAxis(Gamepad::F310_RIGHT_Y), 0.05f);
-	if (right_y > 0.2f) {
-		arm->move_up_curved();
-	} else if (right_y < -0.2) {
-		arm->move_down_curved();
-	} else if (right_y == 0.0){
-		//arm->hold_position_pid();
+	float left_x = copilot->GetRawAxis(Gamepad::F310_LEFT_X);
+	if (fabs(left_x) > 2.0f){
+		arm->move_to_top();
 	}
 	
 	lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
 	if (copilot->GetNumberedButton(Gamepad::F310_B)){
-		winch->wind_back();
-	}
-	
-	if (copilot->GetNumberedButton(Gamepad::F310_LB)){
-		winch->wind_back();
-		arm->load_sequence();
-	}
-	
-	if (copilot->GetNumberedButton(Gamepad::F310_RB) || pilot->GetNumberedButton(2)){
-		if (winch_max_switch->Get()){
-			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "winch not ready");
-		} else {
-			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
-		}
 		winch->fire();
-	} else {
-		if (!winch_max_switch->Get()){
-			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "winch not ready");
-		} else {
-			lcd->PrintfLine(DriverStationLCD::kUser_Line4, "ready to fire");
-		}
 	}
 	
 	if (fabs(FIRING_DISTANCE - rangefinder->Get()) < 6.0f){

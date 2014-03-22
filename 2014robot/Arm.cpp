@@ -12,7 +12,6 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 	top_switch = top;
 	ball_switch = ball;
 	pid = new PIDController(0.1, 0.0, 0.0, encoder, pivot);
-	roller_set = false;
 	pivot_set = false;
 	arm_mode = FREE;
 	roller_mode = OFF;
@@ -30,12 +29,14 @@ void Arm::drop_ball_in() {//override for run_roller_in function
 	roller_mode = DEPLOY;
 }
 
+//if no ball is captured, lower the arm and roll in until one is.
+//once a ball is captured, lift the arm to the top and stay there.
 void Arm::load_sequence() {
 	switch (arm_mode) {
 		case FREE: 
 			arm_mode = LOWERING;
 		case LOWERING:
-			if (at_bottom())
+			if (at_bottom() || ball_captured())
 				arm_mode = WAITING_FOR_BALL;
 			else
 				break;
@@ -48,16 +49,12 @@ void Arm::load_sequence() {
 			}
 		case RAISING:
 			if (at_top())
-				arm_mode = WAITING_TO_DROP;
-			else
-				break;
-		case WAITING_TO_DROP:
-			roller_mode = DEPLOY;
+				arm_mode = FREE;
 			break;
 	}
 }
 
-void Arm::end_sequence() {
+void Arm::override() {
 	arm_mode = FREE;
 }
 
@@ -200,25 +197,6 @@ void Arm::update(){
 			pivot->Set(0.0f);
 			break;
 	}
-	
-	if (moving_to_bottom){
-		if (!pivot_set){
-			move_down_curved();
-		}
-	}
-	
-	if (!pivot_set) {
-		pivot->Set(0.0f);
-		pid->Disable();
-	}
-	
-	if (at_top()){
-		encoder->Reset();
-		pid->Disable();
-	}
-	
-	roller_set = false;
-	pivot_set = false;
 }
 
 

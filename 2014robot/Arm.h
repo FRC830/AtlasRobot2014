@@ -13,13 +13,10 @@ private:
 	DigitalInput * top_switch;
 	DigitalInput * ball_switch;
 	PIDController * pid;
-	bool roller_set;
 	bool pivot_set;
-	bool moving_to_bottom;
-	bool moving_to_top;
 	
 	typedef enum arm_mode_e 
-		{FREE, LOWERING, RAISING, WAITING_FOR_BALL, WAITING_TO_DROP} arm_mode_t;
+		{FREE, LOWERING, RAISING, WAITING_FOR_BALL, LOW_GOAL} arm_mode_t;
 	arm_mode_t arm_mode;
 	
 	typedef enum roller_mode_e {OFF, INTAKE, DEPLOY, EJECT} roller_mode_t;
