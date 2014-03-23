@@ -35,9 +35,9 @@ private:
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
     
-    static const int RED_LED_DIO = 12;
+    static const int RED_LED_DIO = 11;
     static const int GREEN_LED_DIO = 10;
-    static const int BLUE_LED_DIO = 11;
+    static const int BLUE_LED_DIO = 12;
     
 	static const int WINCH_ENCODER_A_CHANNEL = 5; //not used
 	static const int WINCH_ENCODER_B_CHANNEL = 8; //not used
@@ -60,8 +60,8 @@ private:
 	
     float old_turn, old_forward;
     
-    Victor * left_drive;
-    Victor * right_drive;
+    Talon * left_drive;
+    Talon * right_drive;
 	RobotDrive * drive;
 	
 	DigitalInput * arm_floor;

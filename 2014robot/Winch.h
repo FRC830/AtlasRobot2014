@@ -58,6 +58,9 @@ public:
 	 */
 	void update();
 	
+	/*returns whether the limit switch at the base of the catapult is hit*/
+	bool wound_back();
+	
 	//we don't actually use any of these
 	void set_target_rotations(float n);
 	float get_target_rotations();

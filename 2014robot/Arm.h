@@ -33,7 +33,7 @@ private:
 public:
 	static const int TOP_POSITION = 0;
 	static const int FLOOR_POSITION = 50;
-	static const int LOW_GOAL_POSITION = 20; //TODO: determine this
+	static const int LOW_GOAL_POSITION = 30; //TODO: determine this
 	Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInput * floor, DigitalInput * top, DigitalInput * ball);
 	void set_position(int pos); //position from 0 (top) to 60 (floor)
 	void run_roller_in();

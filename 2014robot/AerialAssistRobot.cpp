@@ -5,8 +5,8 @@ AerialAssistRobot::AerialAssistRobot(void)	{
 }
 
 void AerialAssistRobot::RobotInit(void) {
-	left_drive = new Victor(LEFT_DRIVE_PWM);
-	right_drive = new Victor(RIGHT_DRIVE_PWM);
+	left_drive = new Talon(LEFT_DRIVE_PWM);
+	right_drive = new Talon(RIGHT_DRIVE_PWM);
 	drive = new RobotDrive(left_drive, right_drive);
 	drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, false);
 	drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, false);
@@ -224,11 +224,16 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	if (copilot->GetNumberedButton(Gamepad::F310_B)){
 		winch->fire();
 	}
+	
+	//secret override for winding back
+	if (copilot->GetNumberedButton(8)){
+		winch->wind_back();
+	}
 
-	if (fabs(FIRING_DISTANCE - rangefinder->Get()) < 6.0f){
-		led->Set(DigitalLED::GREEN);
+	if (winch->wound_back()){
+		led->Set(DigitalLED::YELLOW);
 	} else if (arm->ball_captured()){
-		led->Set(DigitalLED::YELLOW); 
+		led->Set(DigitalLED::GREEN); 
 	} else {
 		led->Set(alliance_color);
 	}
