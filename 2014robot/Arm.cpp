@@ -95,22 +95,24 @@ void Arm::move_up_interval(){
 	int pos = encoder->Get();
 	float speed = 0.0f;
 	if (pos > 30){
-		speed = -0.7f;
-	} else if (pos > 15) {
-		speed = -0.3f;
+		speed = -0.8f;
+	} else if (pos > 15){
+		speed = -0.6f;
 	} else {
-		speed = -0.1f;
+		speed = -0.3f;
 	}
+	pivot->Set(speed);
 }
 
 void Arm::move_down_interval(){
 	int pos = encoder->Get();
 	float speed = 0.0f;
 	if (pos < 15) {
-		speed = 0.4f;
+		speed = 0.5f;
 	} else {
-		speed = 0.2f;
+		speed = 0.3f;
 	}
+	pivot->Set(speed);
 }
 
 void Arm::move_up_pid(){
@@ -133,6 +135,10 @@ void Arm::hold_position_pid(){
 	pid->SetSetpoint(0.0f);
 	pid->Enable();
 	pivot_set = true;
+}
+
+void Arm::hold_at_top() {
+	arm_mode = HOLDING_AT_TOP;
 }
 
 void Arm::move_to_bottom() {
@@ -174,28 +180,38 @@ void Arm::update(){
 
 	switch (arm_mode) {
 		case FREE:
-			if (!pivot_set)
+			if (!pivot_set) {
 				pivot->Set(0.0f);
+				if (at_top())
+					arm_mode = HOLDING_AT_TOP;
+				if (at_bottom())
+					arm_mode = HOLDING_AT_BOTTOM;
+			}
 			pivot_set = false;
 			break;
 		case LOWERING:
-			if (!at_bottom()) {
-				move_down_curved();
-			} else {
-				pivot->Set(0.0f);
+			if (at_bottom())
 				arm_mode = FREE;
-			}
+		case HOLDING_AT_BOTTOM:
+			if (!at_bottom())
+				move_down_curved();
+			else
+				pivot->Set(0.0f);
 			break;
 		case RAISING:
-			if (!at_top()){
-				move_up_curved();
-			} else {
-				pivot->Set(0.0f);
+			if (at_top())
 				arm_mode = FREE;
-			}
+		case HOLDING_AT_TOP:
+			if (!at_top())
+				move_up_curved();
+			else
+				pivot->Set(0.0f);
 			break;
 		default:
 			pivot->Set(0.0f);
+	}
+	if (at_top()){
+		encoder->Reset();
 	}
 }
 

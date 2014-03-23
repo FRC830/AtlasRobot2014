@@ -196,21 +196,30 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 		arm->run_roller_out();
 	}
 
-	float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
+	float left_y = copilot->GetRawAxis(Gamepad::F310_LEFT_Y);
 	//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 	if (left_y > 0.2f) {
 		arm->override();
 		arm->move_up_curved();
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "up");
 	} else if (left_y < -0.2f){
 		arm->override();
 		arm->move_down_curved();
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "down");
+	} else {
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "hold");
 	}
+	//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", arm_lift->Get());
 
 	float left_x = copilot->GetRawAxis(Gamepad::F310_LEFT_X);
-	if (fabs(left_x) > 2.0f){
+	if (fabs(left_x) > 0.2f){
 		arm->move_to_top();
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "to top");
+	} else {
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "hold");
 	}
-
+	lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", left_x);
+	
 	lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
 	if (copilot->GetNumberedButton(Gamepad::F310_B)){
 		winch->fire();
@@ -229,11 +238,11 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	arm->update();
 	winch->update();
 	rangefinder->update();
-
+	
 	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 	lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
-	//lcd->PrintfLine(DriverStationLCD::kUser_Line3, "arm: %d", arm_top->Get());
-	lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
+	lcd->PrintfLine(DriverStationLCD::kUser_Line4, "arm: %d", arm_top->Get());
+	//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
 	lcd->UpdateLCD();	
 }
 

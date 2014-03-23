@@ -26,7 +26,7 @@ private:
 	static const int WINCH_ZERO_POINT_DIO = 8; //not used
 	
 	static const int ARM_FLOOR_SWITCH_DIO = 5; //not used
-	static const int ARM_TOP_SWITCH_DIO = 3;
+	static const int ARM_TOP_SWITCH_DIO = 7;
 	static const int ARM_LINE_BREAK_DIO = 9;
  	
 	static const int ARM_ENCODER_A_CHANNEL = 2;
@@ -121,14 +121,14 @@ public:
 	void RobotInit(void);
 	
 	void DisabledInit(void);
-	void AutonomousInit(void) { AutonomousDriveForwardInit(); }
+	void AutonomousInit(void) { AutonomousMainInit(); }
 	void TeleopInit(void);
-	void TestInit();
+	void TestInit(void);
 	
 	void DisabledPeriodic(void);
 	void AutonomousPeriodic(void) { AutonomousMainPeriodic(); }
 	void TeleopPeriodic(void);
-	void TestPeriodic();
+	void TestPeriodic(void);
 	
 };
 

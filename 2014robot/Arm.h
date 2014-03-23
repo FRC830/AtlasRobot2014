@@ -16,7 +16,7 @@ private:
 	bool pivot_set;
 
 	typedef enum arm_mode_e 
-		{FREE, LOWERING, RAISING, WAITING_FOR_BALL, LOW_GOAL} arm_mode_t;
+		{FREE, LOWERING, RAISING, WAITING_FOR_BALL, LOW_GOAL, HOLDING_AT_TOP, HOLDING_AT_BOTTOM} arm_mode_t;
 	arm_mode_t arm_mode;
 
 	typedef enum roller_mode_e {OFF, INTAKE, DEPLOY, EJECT} roller_mode_t;
@@ -30,12 +30,9 @@ private:
 	void move_up_pid();
 	void move_down_pid();
 
-	bool at_top();
-	bool at_bottom();
-
 public:
 	static const int TOP_POSITION = 0;
-	static const int FLOOR_POSITION = 55;
+	static const int FLOOR_POSITION = 50;
 	static const int LOW_GOAL_POSITION = 20; //TODO: determine this
 	Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInput * floor, DigitalInput * top, DigitalInput * ball);
 	void set_position(int pos); //position from 0 (top) to 60 (floor)
@@ -50,6 +47,9 @@ public:
 	void move_down_curved();
 	void move_to_bottom();
 	void move_to_top();
+	void hold_at_top();
+	bool at_top();
+	bool at_bottom();
 	void hold_position_pid();
 	bool ball_captured();
 	void update();
