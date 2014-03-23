@@ -22,11 +22,11 @@ class AerialAssistRobot : public IterativeRobot
 	static const int WINCH_ZERO_POINT_DIO = 8; //not used
 	
 	static const int ARM_FLOOR_SWITCH_DIO = 5; //not used
-	static const int ARM_TOP_SWITCH_DIO = 3;
+	static const int ARM_TOP_SWITCH_DIO = 7;
 	static const int ARM_LINE_BREAK_DIO = 9;
  	
-	static const int ARM_ENCODER_A_CHANNEL = 2;
-	static const int ARM_ENCODER_B_CHANNEL = 3;
+	static const int ARM_ENCODER_A_CHANNEL = 3;
+	static const int ARM_ENCODER_B_CHANNEL = 2;
 	
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
@@ -134,7 +134,7 @@ public:
 		arm_floor = new DigitalInput(ARM_FLOOR_SWITCH_DIO);
 		arm_top = new DigitalInput(ARM_TOP_SWITCH_DIO);
 		arm_ball = new DigitalInput(ARM_LINE_BREAK_DIO);
-		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL, true);
+		arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL);
 		
 		arm = new Arm(roller, arm_lift, arm_encoder, arm_floor, arm_top, arm_ball);
 		
@@ -309,10 +309,11 @@ public:
         old_turn = turn;
         old_forward = speed;
 		
- 		if (pilot->GetNumberedButton(5) || pilot->GetNumberedButton(6)){
- 			gear_shift->Set(HIGH_GEAR);
- 		} else if (pilot->GetNumberedButton(7) || pilot->GetNumberedButton(8)){
+ 		if (pilot->GetNumberedButton(5) || pilot->GetNumberedButton(6) 
+ 				|| pilot->GetNumberedButton(7) || pilot->GetNumberedButton(8)) {
  			gear_shift->Set(LOW_GEAR);
+ 		} else {
+ 			gear_shift->Set(HIGH_GEAR);
  		}
 
 		//spin the roller forward or back
@@ -328,16 +329,16 @@ public:
 		float left_y = clamp(copilot->GetRawAxis(Gamepad::F310_LEFT_Y), 0.05f);
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
 		if (left_y > 0.2f) {
-			arm->move_up(left_y);
+			arm->move_up();
 		} else if (left_y < -0.2f){
 			arm->move_down();
 		}
 		
 		float right_y = clamp(copilot->GetRawAxis(Gamepad::F310_RIGHT_Y), 0.05f);
 		if (right_y > 0.2f) {
-			arm->move_up_pid();
-		} else if (right_y < 0.2) {
-			arm->move_down_pid();
+			arm->move_up_curved();
+		} else if (right_y < -0.2f) {
+			arm->move_down_curved();
 		} else if (right_y == 0.0){
 			//arm->hold_position_pid();
 		}
@@ -384,7 +385,8 @@ public:
 		lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 		lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
 		//lcd->PrintfLine(DriverStationLCD::kUser_Line3, "arm: %d", arm_top->Get());
-		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
+		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%d", arm->pid->IsEnabled());
 		lcd->UpdateLCD();	
 	}
 	

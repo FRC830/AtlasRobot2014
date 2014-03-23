@@ -12,11 +12,11 @@ private:
 	DigitalInput * floor_switch;
 	DigitalInput * top_switch;
 	DigitalInput * ball_switch;
-	PIDController * pid;
 	bool roller_set;
 	bool pivot_set;
 	
 public:
+	PIDController * pid;
 	static const int TOP_POSITION = 0;
 	static const int FLOOR_POSITION = 67;
 	static const int LOW_GOAL_POSITION = 20; //TODO: determine this
@@ -26,8 +26,10 @@ public:
 	void run_roller_out();
 	void drop_ball_in();
 	void load_sequence();
-	void move_up(float speed);
+	void move_up();
 	void move_down();
+	void move_up_curved();
+	void move_down_curved();
 	void move_up_pid();
 	void move_down_pid();
 	void hold_position_pid();

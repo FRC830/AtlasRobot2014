@@ -11,7 +11,7 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 	floor_switch = floor;
 	top_switch = top;
 	ball_switch = ball;
-	pid = new PIDController(0.0, 0.1, 0.0, encoder, pivot);
+	pid = new PIDController(0.1, 0.0, 0.0, encoder, pivot);
 	roller_set = false;
 	pivot_set = false;
 }
@@ -37,23 +37,16 @@ void Arm::load_sequence() {
 	if (!ball_captured()){
 		run_roller_in();
 	} else if (top_switch->Get()){
-		move_up(0.7);
+		move_up();
 	} else {
 		drop_ball_in();
 	}
 }
 
-void Arm::move_up(float val){
+void Arm::move_up(){
 	pid->Disable();
-	float speed = -fabs(val);
-	if(speed < -0.75){
-		speed = -0.75;
-	} else if(speed > 0.0){
-		speed = 0.0;
-	}
-	if (!ball_captured()){
-		speed *= 0.5;
-	}
+	float speed = ball_captured() ? -0.5f : -0.7f;
+	
 	pivot->Set(speed);
 	/*
 	pid->Disable();
@@ -68,11 +61,36 @@ void Arm::move_up(float val){
 
 void Arm::move_down(){
 	pid->Disable();
-	pivot->Set(0.5f);
+	pivot->Set(0.4f);
 	if (!roller_set){
 		roller->Set(1.0f); //move the roller to help prevent the ball from being pulled down
 		roller_set = true;
 	}
+	pivot_set = true;
+}
+
+void Arm::move_up_curved() {
+	float pos = encoder->Get();
+	float speed = 0.0f;
+	//speed = (10.0 + pos) * (70.0 - pos) / 1600;
+	//speed = (-0.16091489743f) * pow(pos - 30.0f, (1/3)) + 0.5f;
+	if (pos > 40){
+		speed = 0.7f;
+	} else if (pos > 20){
+		speed = 0.4f;
+	} else {
+		speed = 0.2f;
+	}
+	if (!top_switch->Get()){
+		pivot->Set(-speed);
+		pivot_set = true;
+	}
+}
+
+void Arm::move_down_curved(){
+	float enc = encoder->Get();
+	float speed = (10.0 + enc) * (70.0 - enc) / 1600;
+	pivot->Set(speed);
 	pivot_set = true;
 }
 
@@ -92,9 +110,13 @@ void Arm::move_up_pid(){
 void Arm::move_down_pid(){
 	
 	//pid->SetSetpoint(FLOOR_POSITION);
-	pid->SetSetpoint(MOVEMENT_RATE);
-	pid->Enable();
-	pivot_set = true;
+	if (encoder->Get() < TOP_POSITION){
+		pid->SetSetpoint(MOVEMENT_RATE);
+		pid->Enable();
+		pivot_set = true;
+	} else {
+		pid->Disable();
+	}
 	
 }
 
@@ -117,7 +139,7 @@ void Arm::update(){
 		pid->Disable();
 	}
 	
-	if (top_switch->Get()){
+	if (!top_switch->Get()){
 		encoder->Reset();
 	}
 	
