@@ -12,33 +12,28 @@ private:
 	DigitalInput * floor_switch;
 	DigitalInput * top_switch;
 	DigitalInput * ball_switch;
-<<<<<<< HEAD
-	bool roller_set;
-=======
 	PIDController * pid;
->>>>>>> 8953aa1d2f8568eab543727f959ccf431a266b92
 	bool pivot_set;
-	
+
 	typedef enum arm_mode_e 
 		{FREE, LOWERING, RAISING, WAITING_FOR_BALL, LOW_GOAL} arm_mode_t;
 	arm_mode_t arm_mode;
-	
+
 	typedef enum roller_mode_e {OFF, INTAKE, DEPLOY, EJECT} roller_mode_t;
 	roller_mode_t roller_mode;
-	
+
 	//acceleration control based on assigning different speeds to different encoder regions
 	void move_up_interval();
 	void move_down_interval();
-	
+
 	//acceleration control based on PID
 	void move_up_pid();
 	void move_down_pid();
 
 	bool at_top();
 	bool at_bottom();
-	
+
 public:
-	PIDController * pid;
 	static const int TOP_POSITION = 0;
 	static const int FLOOR_POSITION = 55;
 	static const int LOW_GOAL_POSITION = 20; //TODO: determine this
@@ -48,21 +43,13 @@ public:
 	void run_roller_out();
 	void drop_ball_in();
 	void load_sequence();
-<<<<<<< HEAD
-=======
-	void end_sequence();
->>>>>>> 8953aa1d2f8568eab543727f959ccf431a266b92
+	void override();
 	void move_up();
 	void move_down();
 	void move_up_curved();
 	void move_down_curved();
-<<<<<<< HEAD
-	void move_up_pid();
-	void move_down_pid();
-=======
 	void move_to_bottom();
 	void move_to_top();
->>>>>>> 8953aa1d2f8568eab543727f959ccf431a266b92
 	void hold_position_pid();
 	bool ball_captured();
 	void update();

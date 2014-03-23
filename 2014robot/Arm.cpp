@@ -12,10 +12,6 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 	top_switch = top;
 	ball_switch = ball;
 	pid = new PIDController(0.1, 0.0, 0.0, encoder, pivot);
-<<<<<<< HEAD
-	roller_set = false;
-=======
->>>>>>> 8953aa1d2f8568eab543727f959ccf431a266b92
 	pivot_set = false;
 	arm_mode = FREE;
 	roller_mode = OFF;
@@ -36,21 +32,6 @@ void Arm::drop_ball_in() {//override for run_roller_in function
 //if no ball is captured, lower the arm and roll in until one is.
 //once a ball is captured, lift the arm to the top and stay there.
 void Arm::load_sequence() {
-<<<<<<< HEAD
-	if (!ball_captured()){
-		run_roller_in();
-	} else if (top_switch->Get()){
-		move_up();
-	} else {
-		drop_ball_in();
-	}
-}
-
-void Arm::move_up(){
-	pid->Disable();
-	float speed = ball_captured() ? -0.5f : -0.7f;
-	
-=======
 	switch (arm_mode) {
 		case FREE: 
 			arm_mode = LOWERING;
@@ -70,6 +51,8 @@ void Arm::move_up(){
 			if (at_top())
 				arm_mode = FREE;
 			break;
+		default:
+			arm_mode = LOWERING;
 	}
 }
 
@@ -84,7 +67,6 @@ void Arm::move_up(){
 	if (!ball_captured()){
 		speed = -0.5;
 	}
->>>>>>> 8953aa1d2f8568eab543727f959ccf431a266b92
 	pivot->Set(speed);
 
 	pivot_set = true;
@@ -92,56 +74,13 @@ void Arm::move_up(){
 
 void Arm::move_down(){
 	pid->Disable();
-<<<<<<< HEAD
-	pivot->Set(0.4f);
-	if (!roller_set){
-		roller->Set(1.0f); //move the roller to help prevent the ball from being pulled down
-		roller_set = true;
-=======
 	pivot->Set(0.5f);
 	if (ball_captured() && roller_mode == OFF){
 		roller_mode = DEPLOY; //move the roller to help prevent the ball from being pulled down
->>>>>>> 8953aa1d2f8568eab543727f959ccf431a266b92
 	}
 	pivot_set = true;
 }
 
-<<<<<<< HEAD
-void Arm::move_up_curved() {
-	float pos = encoder->Get();
-	float speed = 0.0f;
-	//speed = (10.0 + pos) * (70.0 - pos) / 1600;
-	//speed = (-0.16091489743f) * pow(pos - 30.0f, (1/3)) + 0.5f;
-	if (pos > 40){
-		speed = 0.7f;
-	} else if (pos > 20){
-		speed = 0.4f;
-	} else {
-		speed = 0.2f;
-	}
-	if (!top_switch->Get()){
-		pivot->Set(-speed);
-		pivot_set = true;
-	}
-}
-
-void Arm::move_down_curved(){
-	float enc = encoder->Get();
-	float speed = (10.0 + enc) * (70.0 - enc) / 1600;
-	pivot->Set(speed);
-	pivot_set = true;
-}
-
-void Arm::move_up_pid(){
-	
-	if (!top_switch->Get()){
-		//pid->SetSetpoint(TOP_POSITION);
-		pid->SetSetpoint(-1.0f * MOVEMENT_RATE);
-		pid->Enable();
-		pivot_set = true;
-	}  else {
-		pid->Disable();
-=======
 void Arm::move_up_curved(){
 	move_up_interval();
 	pivot_set = true;
@@ -171,7 +110,6 @@ void Arm::move_down_interval(){
 		speed = 0.4f;
 	} else {
 		speed = 0.2f;
->>>>>>> 8953aa1d2f8568eab543727f959ccf431a266b92
 	}
 }
 
@@ -184,19 +122,15 @@ void Arm::move_up_pid(){
 
 void Arm::move_down_pid(){
 	//pid->SetSetpoint(FLOOR_POSITION);
-	if (encoder->Get() < TOP_POSITION){
-		pid->SetSetpoint(MOVEMENT_RATE);
-		pid->Enable();
-		pivot_set = true;
-	} else {
-		pid->Disable();
-	}
-	
+	pid->SetSetpoint(MOVEMENT_RATE);
+	pid->Enable();
+	pivot_set = true;
+
 }
 
 void Arm::hold_position_pid(){
 	//pid->SetSetpoint(encoder->Get());
-	encoder->SetSetpoint(0.0f);
+	pid->SetSetpoint(0.0f);
 	pid->Enable();
 	pivot_set = true;
 }
@@ -237,26 +171,7 @@ void Arm::update(){
 			break;
 	}
 	roller_mode = OFF; //roller must be reset continuously
-	
-<<<<<<< HEAD
-	if (!top_switch->Get()){
-		encoder->Reset();
-	}
-	
-	roller_set = false;
-	pivot_set = false;
-	
-	/*
-	if (floor_switch->Get()){
-		pid->Disable();
-		encoder->Reset();
-		pivot->Set(0.0f);
-	} else if (top_switch->Get()){
-		pid->Disable();
-		pivot->Set(0.0f);
-	} else {
-		//pid->Enable();
-=======
+
 	switch (arm_mode) {
 		case FREE:
 			if (!pivot_set)
@@ -279,11 +194,8 @@ void Arm::update(){
 				arm_mode = FREE;
 			}
 			break;
-		case WAITING_FOR_BALL:
-		case WAITING_TO_DROP:
+		default:
 			pivot->Set(0.0f);
-			break;
->>>>>>> 8953aa1d2f8568eab543727f959ccf431a266b92
 	}
 }
 

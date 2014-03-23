@@ -43,7 +43,7 @@ void Winch::update(){
 		if (!max_lim_switch->Get() && time_s < 3.0){
 			winch_motor->Set(-0.7f);
 		} else {
-			mode == HOLDING; //stop winding back if we've hit the switch
+			mode = HOLDING; //stop winding back if we've hit the switch
 		}
 	}
 	
