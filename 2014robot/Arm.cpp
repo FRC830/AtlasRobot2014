@@ -51,6 +51,8 @@ void Arm::load_sequence() {
 			if (at_top())
 				arm_mode = FREE;
 			break;
+		default:
+			arm_mode = LOWERING;
 	}
 }
 
@@ -128,7 +130,7 @@ void Arm::move_down_pid(){
 
 void Arm::hold_position_pid(){
 	//pid->SetSetpoint(encoder->Get());
-	encoder->SetSetpoint(0.0f);
+	pid->SetSetpoint(0.0f);
 	pid->Enable();
 	pivot_set = true;
 }
@@ -192,10 +194,8 @@ void Arm::update(){
 				arm_mode = FREE;
 			}
 			break;
-		case WAITING_FOR_BALL:
-		case WAITING_TO_DROP:
+		default:
 			pivot->Set(0.0f);
-			break;
 	}
 }
 

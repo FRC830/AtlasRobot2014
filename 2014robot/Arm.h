@@ -43,7 +43,7 @@ public:
 	void run_roller_out();
 	void drop_ball_in();
 	void load_sequence();
-	void end_sequence();
+	void override();
 	void move_up();
 	void move_down();
 	void move_up_curved();
