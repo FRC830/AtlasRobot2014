@@ -5,9 +5,11 @@ AerialAssistRobot::AerialAssistRobot(void)	{
 }
 
 void AerialAssistRobot::RobotInit(void) {
-	left_drive = new Talon(LEFT_DRIVE_PWM);
-	right_drive = new Talon(RIGHT_DRIVE_PWM);
-	drive = new RobotDrive(left_drive, right_drive);
+	front_left = new Talon(FRONT_LEFT_DRIVE_PWM);
+	front_right = new Talon(FRONT_RIGHT_DRIVE_PWM);
+	rear_left = new Talon(REAR_LEFT_DRIVE_PWM);
+	rear_right = new Talon(REAR_RIGHT_DRIVE_PWM);
+	drive = new RobotDrive(front_left, rear_left, front_right, rear_right);
 	drive->SetInvertedMotor(RobotDrive::kFrontLeftMotor, false);
 	drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, false);
 	drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
@@ -20,14 +22,13 @@ void AerialAssistRobot::RobotInit(void) {
 	arm_floor = new DigitalInput(ARM_FLOOR_SWITCH_DIO);
 	arm_top = new DigitalInput(ARM_TOP_SWITCH_DIO);
 	arm_ball = new DigitalInput(ARM_LINE_BREAK_DIO);
-	arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL, true);
+	arm_encoder = new Encoder(ARM_ENCODER_A_CHANNEL, ARM_ENCODER_B_CHANNEL, false);
 
 	arm = new Arm(roller, arm_lift, arm_encoder, arm_floor, arm_top, arm_ball);
 
 	winch_motor = new Victor(WINCH_PWM);
 	winch_encoder = new Encoder(WINCH_ENCODER_A_CHANNEL, WINCH_ENCODER_B_CHANNEL);
 	winch_max_switch = new DigitalInput (WINCH_MAX_LIMIT_DIO);
-	winch_zero_switch = new DigitalInput (WINCH_ZERO_POINT_DIO);
 
 	led_red_channel = new DigitalOutput(RED_LED_DIO);
 	led_green_channel = new DigitalOutput(GREEN_LED_DIO);
@@ -37,7 +38,7 @@ void AerialAssistRobot::RobotInit(void) {
 	gear_shift = new DoubleSolenoid(GEAR_SHIFT_SOL_FORWARD, GEAR_SHIFT_SOL_REVERSE);
 	clutch = new Solenoid(CLUTCH_SOL);
 
-	winch = new Winch(winch_motor, clutch, winch_encoder, winch_zero_switch, winch_max_switch);
+	winch = new Winch(winch_motor, clutch, winch_encoder, winch_max_switch);
 
 	ultrasonic = new Ultrasonic(RANGE_FINDER_PING_CHANNEL_DIO, RANGE_FINDER_ECHO_CHANNEL_DIO);
 	rangefinder = new Rangefinder(ultrasonic);
@@ -108,8 +109,8 @@ void AerialAssistRobot::AutonomousMainPeriodic(void) {
 	if (time_s < 8.0){
 		//drive->ArcadeDrive(0.5f, 0.0f);
 		drive->ArcadeDrive(0.5f, -0.4f);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", left_drive->Get());
-		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", right_drive->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", front_left->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", front_right->Get());
 	}
 
 	//flash LEDs
@@ -135,8 +136,8 @@ void AerialAssistRobot::AutonomousDriveForwardPeriodic() {
 	if (true || timer->Get() < 5.0){
 		//drive->ArcadeDrive(0.5f, 0.0f);
 		drive->ArcadeDrive(0.5f, -0.4f);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", left_drive->Get());
-		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", right_drive->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", front_left->Get());
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", front_right->Get());
 	}
 	rangefinder->update();
 	arm->update();
@@ -214,11 +215,7 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	float left_x = copilot->GetRawAxis(Gamepad::F310_LEFT_X);
 	if (fabs(left_x) > 0.2f){
 		arm->move_to_top();
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "to top");
-	} else {
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "hold");
-	}
-	lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", left_x);
+	} 
 	
 	lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
 	if (copilot->GetNumberedButton(Gamepad::F310_B)){
@@ -247,6 +244,7 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 	lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
 	lcd->PrintfLine(DriverStationLCD::kUser_Line4, "arm: %d", arm_top->Get());
+	lcd->PrintfLine(DriverStationLCD::kUser_Line6, "lb: %d", arm->ball_captured());
 	//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
 	lcd->UpdateLCD();	
 }

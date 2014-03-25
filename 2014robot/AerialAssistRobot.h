@@ -14,8 +14,10 @@ private:
 	//PWM pins
 	static const int ROLLER_PWM = 1;
 	static const int ARM_LIFT_PWM  = 2;
-	static const int LEFT_DRIVE_PWM = 4;
-	static const int RIGHT_DRIVE_PWM = 7;
+	static const int FRONT_LEFT_DRIVE_PWM = 3;
+	static const int REAR_LEFT_DRIVE_PWM = 4;
+	static const int FRONT_RIGHT_DRIVE_PWM = 7;
+	static const int REAR_RIGHT_DRIVE_PWM = 8;
 	static const int WINCH_PWM = 9;
 	//relay
 	static const int COMPRESSOR_RELAY = 1;
@@ -23,14 +25,13 @@ private:
 	//Digital IO pins
 	static const int PRESSURE_SWITCH_DIO = 6;
 	static const int WINCH_MAX_LIMIT_DIO = 4;
-	static const int WINCH_ZERO_POINT_DIO = 8; //not used
 	
 	static const int ARM_FLOOR_SWITCH_DIO = 5; //not used
 	static const int ARM_TOP_SWITCH_DIO = 7;
 	static const int ARM_LINE_BREAK_DIO = 9;
  	
-	static const int ARM_ENCODER_A_CHANNEL = 2;
-	static const int ARM_ENCODER_B_CHANNEL = 3;
+	static const int ARM_ENCODER_A_CHANNEL = 1;
+	static const int ARM_ENCODER_B_CHANNEL = 2;
 	
     static const int RANGE_FINDER_PING_CHANNEL_DIO = 13;
     static const int RANGE_FINDER_ECHO_CHANNEL_DIO = 14;
@@ -60,8 +61,10 @@ private:
 	
     float old_turn, old_forward;
     
-    Talon * left_drive;
-    Talon * right_drive;
+    Talon * front_left;
+    Talon * front_right;
+    Talon * rear_left;
+    Talon * rear_right;
 	RobotDrive * drive;
 	
 	DigitalInput * arm_floor;
@@ -79,7 +82,6 @@ private:
 	float winch_rotations;
 	bool winch_rot_adjusted;
 	DigitalInput * winch_max_switch;
-	DigitalInput * winch_zero_switch;
 	
 	DigitalOutput * led_red_channel;
 	DigitalOutput * led_green_channel;

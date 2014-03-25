@@ -1,11 +1,10 @@
 #include "Winch.h"
 #include <cmath>
 
-Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * start_pos, DigitalInput * max_pos) {
+Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * max_pos) {
 	winch_motor = motor;
 	clutch = sol;
 	winch_encoder = encoder;
-	zero_pt_lim_switch = start_pos;
 	max_lim_switch = max_pos;
 	clutch_position = CLUTCH_OUT;
 	
@@ -83,9 +82,7 @@ void Winch::wind_back_dist(float dist){
 
 void Winch::wind_back_rotations(float n_rotations){
 	//once this switch is engaged, that means we can start the encoder
-	if (zero_pt_lim_switch->Get()){
-		winch_encoder->Start();
-	}
+	winch_encoder->Start();
 	//only engage clutch when catapult is at rest
 	if (clutch_position == CLUTCH_OUT){
 		clutch->Set(CLUTCH_IN);

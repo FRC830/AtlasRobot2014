@@ -166,12 +166,12 @@ void Arm::update(){
 		case OFF: 
 			roller->Set(0.0f); break;
 		case DEPLOY: 
-			roller->Set(1.0f); break;
+			roller->Set(0.3f); break;
 		case EJECT: 
-			roller->Set(-1.0f); break;
+			roller->Set(-0.3f); break;
 		case INTAKE:
-			if (ball_switch->Get() || top_switch->Get())
-				roller->Set(1.0f);
+			if (!ball_captured() || at_top())
+				roller->Set(0.3f);
 			else
 				roller->Set(0.0f);
 			break;

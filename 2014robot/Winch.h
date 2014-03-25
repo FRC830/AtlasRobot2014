@@ -13,7 +13,6 @@ private:
 	Timer * timer;
 	bool clutch_position;
 	Encoder * winch_encoder;
-	DigitalInput * zero_pt_lim_switch;
 	DigitalInput * max_lim_switch;
 	static const bool CLUTCH_IN = true; //TODO: determine this
 	static const bool CLUTCH_OUT = false;
@@ -44,7 +43,7 @@ private:
 	
 	
 public:
-	Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * start_pos, DigitalInput * max_pos);
+	Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * max_pos);
 	/*After this function is called once, the winch winds back until it hits the limit switch.*/
 	void wind_back();
 	/*
