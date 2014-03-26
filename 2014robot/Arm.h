@@ -10,6 +10,10 @@
  * load_sequence() does the same thing
  * In addition, if you move manually to the top or the bottom, the arm will maintain that position
  * If you want to move manually, you have to call override()
+ * Important: roller states are *not* persistent and have to be refreshed every cycle
+ * Unless of course they're part of the load sequence
+ * When you move down while a ball is captured, and the roller is not being set to anything else,
+ * It will spin to avoid moving the ball.
  * Also, call update() every cycle or nothing will work
  * This relies on the arm limit switch to calibrate the encoder and determine the top position
  */

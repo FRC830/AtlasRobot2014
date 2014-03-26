@@ -79,6 +79,15 @@ void AerialAssistRobot::AutonomousDriveForwardInit(void) {
 	compressor->Start();
 	timer->Reset();
 	timer->Start();
+	compressor->Start(); //required by rules
+}
+
+void AerialAssistRobot::AutonomousTwoBallInit(void) {
+	gear_shift->Set(LOW_GEAR);
+	winch->wind_back();
+	timer->Reset();
+	timer->Start();
+	compressor->Start(); //required by rules
 }
 
 void AerialAssistRobot::TeleopInit(void) {
