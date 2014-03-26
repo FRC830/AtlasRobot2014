@@ -107,6 +107,13 @@ public:
 	 */
 	void move_down_curved();
 	/*
+	 * Calls move_up_curved() or move_down_curved() as appropriate 
+	 * To move towards the low goal position.
+	 * Not persistent
+	 * We may want to have separate curving for this guy
+	 */
+	void move_towards_low_goal();
+	/*
 	 * Moves the arm until it hits the bottom 
 	 * More specifically, once the encoder reads above a certain value
 	 * This only needs to be called once to take effect

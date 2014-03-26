@@ -264,6 +264,11 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 		arm->move_to_top();
 	} 
 	
+	if (copilot->GetNumberedButton(Gamepad::F310_Y)){
+		arm->override();
+		arm->move_towards_low_goal();
+	}
+	
 	lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
 	
 	if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
@@ -279,7 +284,7 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 		}
 	}
 	
-	//secret override for winding back
+	//secret button for winding back
 	if (copilot->GetNumberedButton(8)){
 		winch->wind_back();
 	}

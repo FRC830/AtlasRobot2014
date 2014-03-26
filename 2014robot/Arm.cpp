@@ -118,6 +118,16 @@ void Arm::move_down_interval(){
 	pivot->Set(speed);
 }
 
+void Arm::move_towards_low_goal(){
+	int pos = encoder->Get();
+	if (pos > LOW_GOAL_POSITION){
+		move_up_curved();
+	} else if (pos < LOW_GOAL_POSITION - 10) {
+		//don't move down if we're not that high up, just let it fall
+		move_down_curved();
+	}
+}
+
 void Arm::move_up_pid(){
 	//pid->SetSetpoint(TOP_POSITION);
 	pid->SetSetpoint(-1.0f * MOVEMENT_RATE);
@@ -158,6 +168,10 @@ bool Arm::at_top() {
 
 bool Arm::at_bottom() {
 	return encoder->Get() >= FLOOR_POSITION;
+}
+
+bool Arm::can_fire() {
+	return encoder->Get() >= MINIMUM_FIRING_POSITION;
 }
 
 void Arm::update(){

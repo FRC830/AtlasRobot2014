@@ -20,8 +20,6 @@ private:
 	DigitalInput * max_lim_switch;
 	static const bool CLUTCH_IN = true;
 	static const bool CLUTCH_OUT = false;
-	static const int MINIMUM_TO_FIRE = 40; //TODO: determine this
-	
 
 	float target_rotations;
 	static const double PI = 3.1415926535;
