@@ -59,7 +59,7 @@ private:
     static const float FIRING_DISTANCE = 180.0f; //TODO: determine this for real
 	
 	
-    float old_turn, old_forward;
+    float old_turn, old_speed;
     
     Talon * front_left;
     Talon * front_right;
@@ -108,6 +108,8 @@ private:
 	DriverStationLCD * lcd;
 	DriverStation * ds;
 	
+	bool firing;
+	
 	bool red, green, blue; //for led testing control
 
 	inline float clamp(float input, float min){ return fabs(input) < fabs(min) ? 0.0f : input; }
@@ -136,7 +138,6 @@ public:
 	
 };
 
-//not sure whether to put this here or in .cpp
 START_ROBOT_CLASS(AerialAssistRobot);
 
 #endif

@@ -19,7 +19,7 @@
  */
 class Arm {
 private:
-	static const float MOVEMENT_RATE = (90.0f / 4.0f); //going down
+	
 	Victor * roller;
 	Victor * pivot;
 	Encoder * encoder;
@@ -45,9 +45,11 @@ private:
 	void move_down_pid();
 
 public:
+	static const float MOVEMENT_RATE = (90.0f / 4.0f); //going down
 	static const int TOP_POSITION = 0;
 	static const int FLOOR_POSITION = 50;
 	static const int LOW_GOAL_POSITION = 30; //TODO: determine this
+	static const int MINIMUM_FIRING_POSITION = 40; //TODO: determine this
 	Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, 
 			DigitalInput * floor, DigitalInput * top, DigitalInput * ball);
 	/*
@@ -130,6 +132,10 @@ public:
 	 * Returns true if the arm is at the bottom (ie, the encoder is past a designated value)
 	 */
 	bool at_bottom();
+	/*
+	 * Returns true if the arm is low enough for a ball to be fired
+	 */
+	bool can_fire();
 	/*
 	 * Returns true if a ball is captured (ie, the linebreak is broken)
 	 */

@@ -14,7 +14,7 @@ void AerialAssistRobot::RobotInit(void) {
 	drive->SetInvertedMotor(RobotDrive::kRearLeftMotor, false);
 	drive->SetInvertedMotor(RobotDrive::kFrontRightMotor, false);
 	drive->SetInvertedMotor(RobotDrive::kRearRightMotor, false);
-	old_forward = 0.0f;
+	old_speed = 0.0f;
 	old_turn = 0.0f;
 
 	roller = new Victor(ROLLER_PWM);
@@ -76,7 +76,6 @@ void AerialAssistRobot::AutonomousMainInit(void) {
 
 void AerialAssistRobot::AutonomousDriveForwardInit(void) {
 	gear_shift->Set(LOW_GEAR);
-	compressor->Start();
 	timer->Reset();
 	timer->Start();
 	compressor->Start(); //required by rules
@@ -92,6 +91,7 @@ void AerialAssistRobot::AutonomousTwoBallInit(void) {
 
 void AerialAssistRobot::TeleopInit(void) {
 	compressor->Start();
+	firing = false;
 }
 
 void AerialAssistRobot::DisabledPeriodic(void)  {
@@ -188,6 +188,7 @@ void AerialAssistRobot::AutonomousDriveForwardPeriodic() {
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", front_left->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", front_right->Get());
 	}
+	
 	rangefinder->update();
 	arm->update();
 	winch->update();
@@ -209,12 +210,12 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 
 	max_delta_speed = 1.0f / (MAX_ACCEL_TIME * GetLoopsPerSec()); //1.0 represents the maximum victor input
 	//float delta_turn = turn - old_turn;
-	float delta_speed = speed - old_forward;
+	float delta_speed = speed - old_speed;
 
 	if (delta_speed > max_delta_speed){
-		speed = old_forward + max_delta_speed;
+		speed = old_speed + max_delta_speed;
 	} else if (delta_speed < -max_delta_speed){
-		speed = old_forward - max_delta_speed;
+		speed = old_speed - max_delta_speed;
 	}
 	//if neither of these is the case, |delta_speed| is less than the max 
 	//and we can just use the given value without modification.
@@ -225,7 +226,7 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	drive->ArcadeDrive(speed, turn);
 	//drive->TankDrive(-pilot->GetLeftY(), pilot->GetRightY());
 	old_turn = turn;
-	old_forward = speed;
+	old_speed = speed;
 
 	if (pilot->GetNumberedButton(5) || pilot->GetNumberedButton(6) 
 			|| pilot->GetNumberedButton(7) || pilot->GetNumberedButton(8)) {
@@ -253,15 +254,10 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	if (left_y > 0.2f) {
 		arm->override();
 		arm->move_up_curved();
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "up");
 	} else if (left_y < -0.2f){
 		arm->override();
 		arm->move_down_curved();
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "down");
-	} else {
-		//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "hold");
 	}
-	//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "%f", arm_lift->Get());
 
 	float left_x = copilot->GetRawAxis(Gamepad::F310_LEFT_X);
 	if (fabs(left_x) > 0.2f){
@@ -269,8 +265,18 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	} 
 	
 	lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
-	if (copilot->GetNumberedButton(Gamepad::F310_B)){
-		winch->fire();
+	
+	if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
+		firing = true;
+	}
+	
+	if (firing) {
+		if (arm->can_fire()){
+			winch->fire();
+			firing = false;
+		} else {
+			arm->move_down_curved();
+		}
 	}
 	
 	//secret override for winding back
