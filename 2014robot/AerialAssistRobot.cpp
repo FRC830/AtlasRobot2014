@@ -97,7 +97,7 @@ void AerialAssistRobot::AutonomousMainPeriodic(void) {
 	if (time_s < 5.0){
 		arm->drop_ball_in();
 	} else if (time_s < 7.0){
-		arm->move_down();
+		arm->move_to_bottom();
 	}
 
 	if (time_s > 8.5 && time_s < 9.0){
@@ -108,7 +108,7 @@ void AerialAssistRobot::AutonomousMainPeriodic(void) {
 	}
 	if (time_s < 8.0){
 		//drive->ArcadeDrive(0.5f, 0.0f);
-		drive->ArcadeDrive(0.5f, -0.4f);
+		drive->ArcadeDrive(0.5f, -0.4f); //TODO: Not right
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", front_left->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", front_right->Get());
 	}
@@ -132,6 +132,48 @@ void AerialAssistRobot::AutonomousMainPeriodic(void) {
 	lcd->UpdateLCD();
 }
 
+//TWO-BALL AUTON:
+void AerialAssistRobot::AutonomousTwoBallPeriodic(void) {
+	double time_into_auton = timer->Get();
+	if(time_into_auton < 1.5){
+		arm->drop_ball_in();
+		drive->ArcadeDrive(-0.3f,0.0f);
+	}
+	if(time_into_auton > 1.5 && time_into_auton < 3.0){
+		arm->move_to_bottom();
+	}
+	if(time_into_auton > 3.0 && time_into_auton < 4.0){
+		arm->load_sequence();
+		winch->fire();
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
+		drive->ArcadeDrive(0.4, 0.0);
+	}
+	if(time_into_auton > 4.0 && time_into_auton < 7.0){
+		arm->load_sequence();
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "");
+	}
+	if(time_into_auton > 7.0 && time_into_auton < 8.0){
+		arm->drop_ball_in();
+	}
+	if(time_into_auton > 8.0 && time_into_auton < 9.5){
+		arm->move_to_bottom();
+	}
+	if(time_into_auton > 9.0 && time_into_auton < 11.0){
+		winch->fire();
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
+	}
+	else {
+		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "");
+	}//just in case
+	
+	arm->update();
+	winch->update();
+	rangefinder->update();
+	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "auton");
+	lcd->PrintfLine(DriverStationLCD::kUser_Line2, "time: %f", time_into_auton);
+	lcd->PrintfLine(DriverStationLCD::kUser_Line3, "dist: %f", rangefinder->Get());
+	lcd->UpdateLCD();
+}
 void AerialAssistRobot::AutonomousDriveForwardPeriodic() {
 	if (true || timer->Get() < 5.0){
 		//drive->ArcadeDrive(0.5f, 0.0f);

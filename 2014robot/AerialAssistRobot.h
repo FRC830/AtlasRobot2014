@@ -116,6 +116,7 @@ private:
 	void AutonomousMainInit(void);
 	
 	void AutonomousMainPeriodic(void);
+	void AutonomousTwoBallPeriodic(void);
 	void AutonomousDriveForwardPeriodic(void);
 	
 public:
