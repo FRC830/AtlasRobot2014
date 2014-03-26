@@ -113,6 +113,7 @@ private:
 	inline float clamp(float input, float min){ return fabs(input) < fabs(min) ? 0.0f : input; }
 	
 	void AutonomousDriveForwardInit(void);
+	void AutonomousTwoBallInit(void);
 	void AutonomousMainInit(void);
 	
 	void AutonomousMainPeriodic(void);

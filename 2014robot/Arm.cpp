@@ -88,6 +88,9 @@ void Arm::move_up_curved(){
 
 void Arm::move_down_curved(){
 	move_down_interval();
+	if (ball_captured() && roller_mode == OFF){
+		roller_mode = DEPLOY; //move the roller to help prevent the ball from being pulled down
+	}
 	pivot_set = true;
 }
 
@@ -135,10 +138,6 @@ void Arm::hold_position_pid(){
 	pid->SetSetpoint(0.0f);
 	pid->Enable();
 	pivot_set = true;
-}
-
-void Arm::hold_at_top() {
-	arm_mode = HOLDING_AT_TOP;
 }
 
 void Arm::move_to_bottom() {

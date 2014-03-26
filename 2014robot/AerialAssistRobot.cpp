@@ -67,7 +67,6 @@ void AerialAssistRobot::DisabledInit(void) {
 }
 
 void AerialAssistRobot::AutonomousMainInit(void) {
-	clutch->Set(CLUTCH_IN);
 	gear_shift->Set(LOW_GEAR);
 	winch->wind_back();
 	timer->Reset();
@@ -107,8 +106,7 @@ void AerialAssistRobot::AutonomousMainPeriodic(void) {
 		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "");
 	}
 	if (time_s < 8.0){
-		//drive->ArcadeDrive(0.5f, 0.0f);
-		drive->ArcadeDrive(0.5f, -0.4f); //TODO: Not right
+		drive->ArcadeDrive(0.5f, 0.0f); //TODO: May need to compensate for drive-train turn
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", front_left->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", front_right->Get());
 	}
@@ -229,6 +227,8 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 
 	if (copilot->GetNumberedButton(Gamepad::F310_X)){
 		arm->load_sequence();
+	} else if (copilot->GetNumberedButtonReleased(Gamepad::F310_X)){
+		arm->override(); //break out of the load sequence, so we don't keep moving up or down
 	}
 
 	if (copilot->GetNumberedButton(Gamepad::F310_A)){

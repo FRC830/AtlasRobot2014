@@ -3,6 +3,10 @@
 
 #include "WPILib.h"
 
+/*
+ * The class for the winch (including the piston, the motor and the limit switch)
+ * 
+ */
 class Winch {
 private:
 	typedef enum e_winch_mode {HOLDING, WINDING_BACK, FIRING, POST_FIRING} winch_mode;
@@ -43,12 +47,19 @@ private:
 	
 	
 public:
+	//the encoder doesn't do anything
+	//feel free to pass null if that's how it is
 	Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * max_pos);
-	/*After this function is called once, the winch winds back until it hits the limit switch.*/
+	/*
+	 * After this function is called once, the winch winds back until it hits the limit switch.
+	 * Does nothing unless update() called in the same cycle
+	 */
 	void wind_back();
 	/*
 	 * After this function is called once, the clutch is released long enough for the catapult to fire
-	 * then the clutch is pushed back and the winch is spun back briefly to allow it to reengage.
+	 * then the clutch is pushed back and the winch is spun back briefly to allow it to reengage
+	 * Then the winch winds back again, exactly as if you had called wind_back()
+	 * Does nothing unless update() called in the same cycle
 	 */
 	void fire();
 	/*
@@ -60,11 +71,18 @@ public:
 	/*returns whether the limit switch at the base of the catapult is hit*/
 	bool wound_back();
 	
-	//we don't actually use any of these
+	//we don't actually use any of these next ones
+	//their behavior is officially undefined
+	
+	//probably harmless
 	void set_target_rotations(float n);
+	//definitely harmless
 	float get_target_rotations();
+	//would advise against calling this one
 	void wind_back_rotations(float n_rotations);
+	//leave this guy alone too
 	void wind_back_dist(float dist);
+	//harmless. call it all you want. Math is fun!
 	float computeAngleFromDistance(float dist);//input dist in feet
 };
 

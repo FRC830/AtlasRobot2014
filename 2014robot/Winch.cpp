@@ -57,17 +57,17 @@ void Winch::update(){
 }
 
 void Winch::wind_back() {
-	if (mode != Winch::WINDING_BACK){
+	if (mode != WINDING_BACK){
 		timer->Reset();
 	}
-	mode = Winch::WINDING_BACK;
+	mode = WINDING_BACK;
 }
 
 void Winch::fire(){
-	if (mode != Winch::FIRING){
+	if (mode != FIRING){
 		timer->Reset();
 	}
-	mode = Winch::FIRING;
+	mode = FIRING;
 }
 
 bool Winch::wound_back() {
