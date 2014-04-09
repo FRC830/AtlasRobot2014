@@ -39,7 +39,7 @@ void Winch::update(){
 	
 	//wind winch back
 	if (mode == WINDING_BACK){
-		if (!wound_back() && time_s < 3.0){
+		if (!wound_back() && time_s < 4.0){
 			winch_motor->Set(-0.7f);
 		} else {
 			mode = HOLDING; //stop winding back if we've hit the switch

@@ -15,6 +15,7 @@ Arm::Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, DigitalInpu
 	pivot_set = false;
 	arm_mode = FREE;
 	roller_mode = OFF;
+	timer = new Timer();
 }
 
 void Arm::run_roller_in() {
@@ -48,8 +49,19 @@ void Arm::load_sequence() {
 				break;
 			}
 		case RAISING:
-			if (at_top())
-				arm_mode = FREE;
+			if (at_top()) {
+				arm_mode = ROLLING_IN_BALL;
+				timer->Reset();
+				timer->Start();
+			} else {
+				break;
+			}
+		case ROLLING_IN_BALL:
+			if (timer->Get() > 1.0) {
+				timer->Stop();
+			} else {
+				roller_mode = DEPLOY;
+			}
 			break;
 		default:
 			arm_mode = LOWERING;
@@ -97,12 +109,21 @@ void Arm::move_down_curved(){
 void Arm::move_up_interval(){
 	int pos = encoder->Get();
 	float speed = 0.0f;
-	if (pos > 30){
-		speed = -0.8f;
-	} else if (pos > 15){
-		speed = -0.6f;
+	
+	if (ball_captured()){
+		if (pos > 10){
+			speed = -0.8f;
+		} else {
+			speed = -0.3f;
+		}
 	} else {
-		speed = -0.3f;
+		if (pos > 30){
+			speed = -0.8f;
+		} else if (pos > 10){
+			speed = -0.6f;
+		} else {
+			speed = -0.1f;
+		}
 	}
 	pivot->Set(speed);
 }
@@ -214,6 +235,7 @@ void Arm::update(){
 		case RAISING:
 			if (at_top())
 				arm_mode = FREE;
+		case ROLLING_IN_BALL:	//hold at the top while we roll in the ball
 		case HOLDING_AT_TOP:
 			if (!at_top())
 				move_up_curved();

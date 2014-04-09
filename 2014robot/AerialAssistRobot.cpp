@@ -67,7 +67,7 @@ void AerialAssistRobot::DisabledInit(void) {
 }
 
 void AerialAssistRobot::AutonomousMainInit(void) {
-	gear_shift->Set(LOW_GEAR);
+	gear_shift->Set(HIGH_GEAR);
 	winch->wind_back();
 	timer->Reset();
 	timer->Start();
@@ -75,14 +75,14 @@ void AerialAssistRobot::AutonomousMainInit(void) {
 }
 
 void AerialAssistRobot::AutonomousDriveForwardInit(void) {
-	gear_shift->Set(LOW_GEAR);
+	gear_shift->Set(HIGH_GEAR);
 	timer->Reset();
 	timer->Start();
 	compressor->Start(); //required by rules
 }
 
 void AerialAssistRobot::AutonomousTwoBallInit(void) {
-	gear_shift->Set(LOW_GEAR);
+	gear_shift->Set(HIGH_GEAR);
 	winch->wind_back();
 	timer->Reset();
 	timer->Start();
@@ -96,37 +96,37 @@ void AerialAssistRobot::TeleopInit(void) {
 
 void AerialAssistRobot::DisabledPeriodic(void)  {
 	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "disabled");
-	led->Set(DigitalLED::OFF);
+	led->Set(alliance_color);
 	lcd->UpdateLCD();
 }
 
 void AerialAssistRobot::AutonomousMainPeriodic(void) {
 	double time_s = timer->Get();
-	if (time_s < 5.0){
+	if (time_s < 2.5){
 		arm->drop_ball_in();
-	} else if (time_s < 7.0){
+	} else if (time_s < 4.5){
 		arm->move_to_bottom();
 	}
 
-	if (time_s > 8.5 && time_s < 9.0){
+	if (time_s > 7.0 && time_s < 7.5){
 		winch->fire();
 		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
 	} else {
 		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "");
 	}
-	if (time_s < 8.0){
-		drive->ArcadeDrive(0.5f, 0.0f); //TODO: May need to compensate for drive-train turn
+	if (time_s < 6.0){
+		drive->ArcadeDrive(0.5f, -0.2f); //TODO: May need to compensate for drive-train turn
 		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", front_left->Get());
 		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", front_right->Get());
 	}
 
 	//flash LEDs
 	//flash red from (0.0 -> 0.5) and (1.0 -> 1.5), then hold green from 2.0s on
-	if(time_s < 0.5 || time_s > 1.0 && time_s < 1.5){
+	if(time_s > 5.0 && time_s < 5.5 || time_s > 6.0 && time_s < 6.5){
 		led->Set(DigitalLED::RED);
-	} else if (time_s > 0.5 && time_s < 1.0 || time_s > 1.5 && time_s < 2.0){
+	} else if (time_s > 5.5 && time_s < 6.0 || time_s > 6.5 && time_s < 7.0){
 		led->Set(DigitalLED::OFF);
-	} else {
+	} else if (time_s > 7.0){
 		led->Set(DigitalLED::GREEN);
 	}
 
@@ -141,52 +141,59 @@ void AerialAssistRobot::AutonomousMainPeriodic(void) {
 
 //TWO-BALL AUTON:
 void AerialAssistRobot::AutonomousTwoBallPeriodic(void) {
-	double time_into_auton = timer->Get();
-	if(time_into_auton < 1.5){
+	double time_s = timer->Get();
+	if(time_s < 2.5){
 		arm->drop_ball_in();
-		drive->ArcadeDrive(-0.3f,0.0f);
+		drive->ArcadeDrive(-0.4f,0.0f);
 	}
-	if(time_into_auton > 1.5 && time_into_auton < 3.0){
-		arm->move_to_bottom();
-	}
-	if(time_into_auton > 3.0 && time_into_auton < 4.0){
+	
+	if (time_s > 2.5 && time_s < 6.0){
 		arm->load_sequence();
-		winch->fire();
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
-		drive->ArcadeDrive(0.4, 0.0);
+		if (arm->can_fire()){
+			winch->fire();
+		}
 	}
-	if(time_into_auton > 4.0 && time_into_auton < 7.0){
-		arm->load_sequence();
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "");
+	
+	if (time_s > 6.0 && time_s < 7.5){
+		arm->drop_ball_in(); //just to make sure
 	}
-	if(time_into_auton > 7.0 && time_into_auton < 8.0){
-		arm->drop_ball_in();
-	}
-	if(time_into_auton > 8.0 && time_into_auton < 9.5){
+	
+	if (time_s > 7.5){
 		arm->move_to_bottom();
+		if (arm->can_fire()){
+			winch->fire();
+		}
 	}
-	if(time_into_auton > 9.0 && time_into_auton < 11.0){
-		winch->fire();
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "firing");
+	
+	if (time_s > 4.0){
+		drive->ArcadeDrive(0.5, 0.0);
 	}
-	else {
-		lcd->PrintfLine(DriverStationLCD::kUser_Line4, "");
-	}//just in case
+	
 	
 	arm->update();
 	winch->update();
 	rangefinder->update();
 	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "auton");
-	lcd->PrintfLine(DriverStationLCD::kUser_Line2, "time: %f", time_into_auton);
+	lcd->PrintfLine(DriverStationLCD::kUser_Line2, "time: %f", time_s);
 	lcd->PrintfLine(DriverStationLCD::kUser_Line3, "dist: %f", rangefinder->Get());
 	lcd->UpdateLCD();
 }
 void AerialAssistRobot::AutonomousDriveForwardPeriodic() {
-	if (true || timer->Get() < 5.0){
-		//drive->ArcadeDrive(0.5f, 0.0f);
-		drive->ArcadeDrive(0.5f, -0.4f);
-		lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", front_left->Get());
-		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", front_right->Get());
+	double time_s = timer->Get();
+	
+	drive->ArcadeDrive(0.5f, 0.0f);
+	//drive->ArcadeDrive(0.5f, -0.4f);
+	lcd->PrintfLine(DriverStationLCD::kUser_Line5, "left: %f", front_left->Get());
+	lcd->PrintfLine(DriverStationLCD::kUser_Line6, "right: %f", front_right->Get());
+	
+	//flash LEDs
+	//flash red from (0.0 -> 0.5) and (1.0 -> 1.5), then hold green from 2.0s on
+	if(time_s < 0.5 || time_s > 1.0 && time_s < 1.5){
+		led->Set(DigitalLED::RED);
+	} else if (time_s > 0.5 && time_s < 1.0 || time_s > 1.5 && time_s < 2.0){
+		led->Set(DigitalLED::OFF);
+	} else {
+		led->Set(DigitalLED::GREEN);
 	}
 	
 	rangefinder->update();
@@ -238,14 +245,15 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	if (copilot->GetNumberedButton(Gamepad::F310_X)){
 		arm->load_sequence();
 	} else if (copilot->GetNumberedButtonReleased(Gamepad::F310_X)){
-		arm->override(); //break out of the load sequence, so we don't keep moving up or down
+		arm->override(); //break out of the load sequence, so we don't keep moving up/down
 	}
 
 	if (copilot->GetNumberedButton(Gamepad::F310_A)){
-		arm->run_roller_in();
+		arm->drop_ball_in();
 	}
 
-	if (copilot->GetNumberedButton(Gamepad::F310_LB) || copilot->GetNumberedButton(Gamepad::F310_RB)){
+	if (copilot->GetNumberedButton(Gamepad::F310_LB) || copilot->GetNumberedButton(Gamepad::F310_RB)
+			|| fabs(copilot->GetRawAxis(Gamepad::F310_TRIGGER_AXIS)) > 0.2){
 		arm->run_roller_out();
 	}
 
@@ -280,6 +288,7 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 			winch->fire();
 			firing = false;
 		} else {
+			arm->override();
 			arm->move_down_curved();
 		}
 	}
@@ -289,7 +298,7 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 		winch->wind_back();
 	}
 
-	if (winch->wound_back()){
+	if (!winch->wound_back()){
 		led->Set(DigitalLED::YELLOW);
 	} else if (arm->ball_captured()){
 		led->Set(DigitalLED::GREEN); 
@@ -306,7 +315,14 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "teleop");
 	lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
 	lcd->PrintfLine(DriverStationLCD::kUser_Line4, "arm: %d", arm_top->Get());
-	lcd->PrintfLine(DriverStationLCD::kUser_Line6, "lb: %d", arm->ball_captured());
+	lcd->PrintfLine(DriverStationLCD::kUser_Line6, "wv: %f", winch_motor->Get());
+	/*
+	if (arm->ball_captured()){
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "lb broken");
+	} else {
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "lb not broken");
+	}
+	*/
 	//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
 	lcd->UpdateLCD();	
 }
@@ -330,6 +346,8 @@ void AerialAssistRobot::TestPeriodic() {
 	}
 	led->Set(red, green, blue);
 
+	drive->ArcadeDrive(0.0f, 0.0f);
+	
 	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "test");
 	lcd->PrintfLine(DriverStationLCD::kUser_Line2, "r: %d", red);
 	lcd->PrintfLine(DriverStationLCD::kUser_Line3, "g: %d", green);

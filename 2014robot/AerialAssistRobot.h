@@ -127,12 +127,12 @@ public:
 	void RobotInit(void);
 	
 	void DisabledInit(void);
-	void AutonomousInit(void) { AutonomousMainInit(); }
+	void AutonomousInit(void) { AutonomousTwoBallInit(); }
 	void TeleopInit(void);
 	void TestInit(void);
 	
 	void DisabledPeriodic(void);
-	void AutonomousPeriodic(void) { AutonomousMainPeriodic(); }
+	void AutonomousPeriodic(void) { AutonomousTwoBallPeriodic(); }
 	void TeleopPeriodic(void);
 	void TestPeriodic(void);
 	

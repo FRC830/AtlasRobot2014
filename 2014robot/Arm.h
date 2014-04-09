@@ -27,10 +27,12 @@ private:
 	DigitalInput * top_switch;
 	DigitalInput * ball_switch;
 	PIDController * pid;
+	Timer * timer;
 	bool pivot_set;
 
 	typedef enum arm_mode_e 
-		{FREE, LOWERING, RAISING, WAITING_FOR_BALL, LOW_GOAL, HOLDING_AT_TOP, HOLDING_AT_BOTTOM} arm_mode_t;
+		{FREE, LOWERING, RAISING, WAITING_FOR_BALL, 
+		LOW_GOAL, HOLDING_AT_TOP, HOLDING_AT_BOTTOM, ROLLING_IN_BALL} arm_mode_t;
 	arm_mode_t arm_mode;
 
 	typedef enum roller_mode_e {OFF, INTAKE, DEPLOY, EJECT} roller_mode_t;
@@ -49,7 +51,7 @@ public:
 	static const int TOP_POSITION = 0;
 	static const int FLOOR_POSITION = 50;
 	static const int LOW_GOAL_POSITION = 30; //TODO: determine this
-	static const int MINIMUM_FIRING_POSITION = 40; //TODO: determine this
+	static const int MINIMUM_FIRING_POSITION = 40;
 	Arm(Victor * roller_motor, Victor * pivot_motor, Encoder * enc, 
 			DigitalInput * floor, DigitalInput * top, DigitalInput * ball);
 	/*
