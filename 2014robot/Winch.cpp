@@ -29,7 +29,7 @@ void Winch::update(){
 	//sequence to spin motor to allow clutch to engage again after firing
 	//spins winch for 1 sec after firing ends
 	if (mode == POST_FIRING){
-		if (timer->Get() < 1.0){
+		if (time_s < 1.0){
 			winch_motor->Set(-0.2);
 		} else {
 			mode = WINDING_BACK; //automatically wind back after firing
