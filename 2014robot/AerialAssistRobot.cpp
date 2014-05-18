@@ -328,13 +328,20 @@ void AerialAssistRobot::TeleopPeriodic(void) {
 }
 
 void AerialAssistRobot::TestInit() {
+	SafetyTestInit();
+}
+void AerialAssistRobot::TestPeriodic(){
+	SafetyTestPeriodic();
+}
+
+void AerialAssistRobot::ColorTestInit() {
 	lcd->Clear();
 	red = false;
 	green = false;
 	blue = false;
 }
 
-void AerialAssistRobot::TestPeriodic() {
+void AerialAssistRobot::ColorTestPeriodic() {
 	if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
 		red = !red;
 	}
@@ -354,4 +361,128 @@ void AerialAssistRobot::TestPeriodic() {
 	lcd->PrintfLine(DriverStationLCD::kUser_Line4, "b: %d", blue);
 	lcd->UpdateLCD();
 
+}
+
+void AerialAssistRobot::SafetyTestInit(){
+	lcd->Clear();
+	compressor->Start();
+	firing = false;	
+	gear_shift->Set(HIGH_GEAR);
+}
+
+void AerialAssistRobot::SafetyTestPeriodic(){
+	/*
+	 * HEY YALL!
+	 * THIS IS SAFETY MODE
+	 */
+	
+	//standard arcade drive using left and right sticks
+	//clamp the values so small inputs are ignored
+	//also limit the speed to 25% power cuz this safety mode!
+	float speed = 0.5*(-pilot->GetLeftY());
+	speed = clamp(speed, 0.05f);
+	float turn = 0.6*(-pilot->GetRightX());
+	turn = clamp(turn, 0.05f);
+
+	max_delta_speed = 1.0f / (MAX_ACCEL_TIME * GetLoopsPerSec()); //1.0 represents the maximum victor input
+
+	float delta_speed = speed - old_speed;
+
+	if (delta_speed > max_delta_speed){
+		speed = old_speed + max_delta_speed;
+	} else if (delta_speed < -max_delta_speed){
+		speed = old_speed - max_delta_speed;
+	}
+
+	lcd->PrintfLine(DriverStationLCD::kUser_Line2, "%f %f", speed, turn);
+
+	drive->ArcadeDrive(speed, turn);
+
+	old_turn = turn;
+	old_speed = speed;
+
+
+	if (copilot->GetNumberedButton(Gamepad::F310_X)){
+		arm->load_sequence();
+	} else if (copilot->GetNumberedButtonReleased(Gamepad::F310_X)){
+		arm->override(); //break out of the load sequence, so we don't keep moving up/down
+	}
+
+	if (copilot->GetNumberedButton(Gamepad::F310_A)){
+		arm->drop_ball_in();
+	}
+
+	if (copilot->GetNumberedButton(Gamepad::F310_LB) || copilot->GetNumberedButton(Gamepad::F310_RB)
+			|| fabs(copilot->GetRawAxis(Gamepad::F310_TRIGGER_AXIS)) > 0.2){
+		arm->run_roller_out();
+	}
+
+	float left_y = copilot->GetRawAxis(Gamepad::F310_LEFT_Y);
+	//lcd->PrintfLine(DriverStationLCD::kUser_Line4, "%arm top: %d", arm_top->Get());
+	if (left_y > 0.2f) {
+		arm->override();
+		arm->move_up_curved();
+	} else if (left_y < -0.2f){
+		arm->override();
+		arm->move_down_curved();
+	}
+
+	float left_x = copilot->GetRawAxis(Gamepad::F310_LEFT_X);
+	if (fabs(left_x) > 0.2f){
+		arm->move_to_top();
+	} 
+	
+	if (copilot->GetNumberedButton(Gamepad::F310_Y)){
+		arm->override();
+		arm->move_towards_low_goal();
+	}
+	
+	lcd->PrintfLine(DriverStationLCD::kUser_Line5, "winch: %d", winch_max_switch->Get());
+	
+	if (copilot->GetNumberedButtonPressed(Gamepad::F310_B)){
+		firing = true;
+	}
+	
+	if (firing) {
+		if (arm->can_fire()){
+			winch->fire();
+			firing = false;
+		} else {
+			arm->override();
+			arm->move_down_curved();
+		}
+	}
+	
+	//secret button for winding back
+	if (copilot->GetNumberedButton(8)){
+		winch->wind_back();
+	}
+
+	if (!winch->wound_back()){
+		led->Set(DigitalLED::YELLOW);
+	} else if (arm->ball_captured()){
+		led->Set(DigitalLED::GREEN); 
+	} else {
+		led->Set(alliance_color);
+	}
+
+	//camera->GetImage();
+
+	arm->update();
+	winch->safety_update();
+	rangefinder->update();
+	
+	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "Safety Mode!!!!");
+	lcd->PrintfLine(DriverStationLCD::kUser_Line3, "enc: %d", arm_encoder->Get());
+	lcd->PrintfLine(DriverStationLCD::kUser_Line4, "arm: %d", arm_top->Get());
+	lcd->PrintfLine(DriverStationLCD::kUser_Line6, "wv: %f", winch_motor->Get());
+	/*
+	if (arm->ball_captured()){
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "lb broken");
+	} else {
+		lcd->PrintfLine(DriverStationLCD::kUser_Line6, "lb not broken");
+	}
+	*/
+	//lcd->PrintfLine(DriverStationLCD::kUser_Line6, "distance: %f", rangefinder->Get());
+	lcd->UpdateLCD();
 }

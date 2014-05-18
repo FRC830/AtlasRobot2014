@@ -117,10 +117,14 @@ private:
 	void AutonomousDriveForwardInit(void);
 	void AutonomousTwoBallInit(void);
 	void AutonomousMainInit(void);
+	void SafetyTestInit(void);
+	void ColorTestInit(void);
 	
 	void AutonomousMainPeriodic(void);
 	void AutonomousTwoBallPeriodic(void);
 	void AutonomousDriveForwardPeriodic(void);
+	void SafetyTestPeriodic(void);
+	void ColorTestPeriodic(void);
 	
 public:
 	AerialAssistRobot(void);
@@ -135,7 +139,6 @@ public:
 	void AutonomousPeriodic(void) { AutonomousTwoBallPeriodic(); }
 	void TeleopPeriodic(void);
 	void TestPeriodic(void);
-	
 };
 
 START_ROBOT_CLASS(AerialAssistRobot);

@@ -66,7 +66,7 @@ public:
 	 * functions to occur.
 	 */
 	void update();
-	
+	void safety_update();
 	/*returns whether the limit switch at the base of the catapult is hit*/
 	bool wound_back();
 	
