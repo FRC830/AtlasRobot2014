@@ -13,7 +13,14 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * m
 	timer->Start();
 }
 
-void Winch::update(){
+void Winch::update(bool safety_mode){
+	float load_time;
+	if (safety_mode){
+		load_time = 1.0;
+	}else{
+		load_time = 4.0;	
+	}
+	
 	double time_s = timer->Get();
 	
 	//sequence for firing
@@ -39,50 +46,7 @@ void Winch::update(){
 	
 	//wind winch back
 	if (mode == WINDING_BACK){
-		if (!wound_back() && time_s < 4.0){
-			winch_motor->Set(-0.7f);
-		} else {
-			mode = HOLDING; //stop winding back if we've hit the switch
-		}
-	}
-	
-	if (mode != FIRING) {
-		clutch->Set(CLUTCH_IN); //so we can push the clutch back in when we stop firing
-	}
-	
-	if (mode == HOLDING || mode == FIRING) {
-		winch_motor->Set(0.0f);
-	}
-
-}
-
-void Winch::safety_update(){
-	double time_safety = timer->Get();
-	
-	//sequence for firing
-	if (mode == FIRING){
-		if (time_safety < 1.0){
-			clutch->Set(CLUTCH_OUT);
-		} else {
-			mode = POST_FIRING;
-			timer->Reset();
-		}
-	}
-	
-	//sequence to spin motor to allow clutch to engage again after firing
-	//spins winch for 1 sec after firing ends
-	if (mode == POST_FIRING){
-		if (timer->Get() < 1.0){
-			winch_motor->Set(-0.2);
-		} else {
-			mode = WINDING_BACK; //automatically wind back after firing
-			timer->Reset();
-		}
-	}
-	
-	//wind winch back
-	if (mode == WINDING_BACK){
-		if (!wound_back() && time_safety < 2.0){
+		if (!wound_back() && time_s < load_time){
 			winch_motor->Set(-0.7f);
 		} else {
 			mode = HOLDING; //stop winding back if we've hit the switch
