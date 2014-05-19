@@ -469,7 +469,7 @@ void AerialAssistRobot::SafetyTestPeriodic(){
 	//camera->GetImage();
 
 	arm->update();
-	winch->safety_update();
+	winch->update(safety_mode=true)
 	rangefinder->update();
 	
 	lcd->PrintfLine(DriverStationLCD::kUser_Line1, "Safety Mode!!!!");
