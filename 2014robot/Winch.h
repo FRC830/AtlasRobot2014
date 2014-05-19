@@ -65,8 +65,7 @@ public:
 	 * This function MUST be called EVERY CYCLE in order for the effects of the wind_back and fire
 	 * functions to occur.
 	 */
-	void update();
-	void safety_update();
+	void update(bool safety_mode=false);
 	/*returns whether the limit switch at the base of the catapult is hit*/
 	bool wound_back();
 	
