@@ -14,13 +14,10 @@ Winch::Winch(Victor * motor, Solenoid * sol, Encoder * encoder, DigitalInput * m
 }
 
 void Winch::update(bool safety_mode){
-	float load_time;
+	float load_time = 4.0;
 	if (safety_mode){
 		load_time = 1.0;
-	}else{
-		load_time = 4.0;	
 	}
-	
 	double time_s = timer->Get();
 	
 	//sequence for firing
